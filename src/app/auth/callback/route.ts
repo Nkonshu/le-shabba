@@ -1,0 +1,19 @@
+ // BIEN VÉRIFIER L'IMPORT (server, pas client)
+import { createClient } from '@/src/utils/supabase/server'
+import { NextResponse } from 'next/server'
+
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+
+  if (code) {
+    const supabase = await createClient() // Ajoute le "await" ici
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      return NextResponse.redirect(`${origin}`)
+    }
+  }
+
+  // En cas d'erreur, retour à l'accueil
+  return NextResponse.redirect(`${origin}`)
+}
