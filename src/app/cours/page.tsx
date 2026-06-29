@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   ChevronLeft, GraduationCap, BookOpen, FileText, 
@@ -14,7 +14,8 @@ import { toggleFavorite } from "@/src/lib/interactions";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/src/utils/supabase/client";
 
-export default function CoursPage() {
+function CoursContent() {
+ 
   const [documents, setDocuments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -260,4 +261,14 @@ function FileItem({ doc, isLast, onRead, isFavorited, onToggleFav }: any) {
       </div>
     </div>
   );
+}
+
+export default function CoursPage() {
+
+    return (
+    <Suspense fallback={<div className="p-10 animate-pulse font-black text-xs uppercase">Initialisation...</div>}>
+      <CoursContent />
+    </Suspense>
+  );
+ 
 }
