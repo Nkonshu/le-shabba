@@ -1,0 +1,52 @@
+{
+  "common": {
+    "appName": "Le Shabba",
+    "loading": "Chargement...",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "close": "Fermer",
+    "next": "Suivant",
+    "back": "Retour",
+    "search": "Rechercher",
+    "seeAll": "Voir tout"
+  },
+  "nav": {
+    "home": "Accueil",
+    "courses": "Cours",
+    "exams": "Épreuves",
+    "forum": "Forum",
+    "favorites": "Favoris",
+    "participants": "Participants",
+    "help": "Aide",
+    "about": "À propos",
+    "contact": "Contact",
+    "admin": "Admin",
+    "profile": "Mon profil",
+    "settings": "Paramètres",
+    "logout": "Se déconnecter"
+  },
+  "auth": {
+    "phoneLabel": "Numéro de téléphone",
+    "sendCode": "Recevoir un code",
+    "otpLabel": "Code reçu par SMS",
+    "verify": "Valider",
+    "resendCode": "Renvoyer le code",
+    "orContinueWith": "Ou continuer avec",
+    "continueWithGoogle": "Continuer avec Google",
+    "otpExpired": "Ce code a expiré, demandes-en un nouveau."
+  },
+  "onboarding": {
+    "step": "Étape {current} sur {total}",
+    "languageTitle": "Choisis ta langue",
+    "languageSubtitle": "Tu pourras la changer à tout moment dans tes paramètres.",
+    "countryTitle": "Dans quel pays es-tu ?",
+    "levelTitle": "Quel est ton niveau ?",
+    "pseudoTitle": "Choisis un pseudo",
+    "pseudoPlaceholder": "Ton pseudo",
+    "referralLabel": "Code de parrainage (optionnel)",
+    "finish": "C'est parti !"
+  }
+}

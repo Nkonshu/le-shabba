@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent-blue: #2563eb;
+  --color-accent-orange: #ea580c;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  }
+}
+
+body {
+  @apply bg-white text-neutral-900 dark:bg-black dark:text-neutral-50;
+}
+
+/* Largeur de lecture confortable pour tout contenu long (documents, questions, réponses) — §6 du
+   document de conception : une ligne de texte qui s'étire sur toute la largeur d'un écran large
+   fatigue la lecture, quelle que soit la mise en page autour. */
+.reading-measure {
+  @apply max-w-prose leading-relaxed;
+}

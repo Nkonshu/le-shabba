@@ -1,0 +1,52 @@
+{
+  "common": {
+    "appName": "Le Shabba",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "next": "Next",
+    "back": "Back",
+    "search": "Search",
+    "seeAll": "See all"
+  },
+  "nav": {
+    "home": "Home",
+    "courses": "Courses",
+    "exams": "Exams",
+    "forum": "Forum",
+    "favorites": "Favorites",
+    "participants": "Participants",
+    "help": "Help",
+    "about": "About",
+    "contact": "Contact",
+    "admin": "Admin",
+    "profile": "My profile",
+    "settings": "Settings",
+    "logout": "Log out"
+  },
+  "auth": {
+    "phoneLabel": "Phone number",
+    "sendCode": "Get a code",
+    "otpLabel": "Code received by SMS",
+    "verify": "Verify",
+    "resendCode": "Resend code",
+    "orContinueWith": "Or continue with",
+    "continueWithGoogle": "Continue with Google",
+    "otpExpired": "This code has expired, request a new one."
+  },
+  "onboarding": {
+    "step": "Step {current} of {total}",
+    "languageTitle": "Choose your language",
+    "languageSubtitle": "You can change it anytime in your settings.",
+    "countryTitle": "Which country are you in?",
+    "levelTitle": "What is your level?",
+    "pseudoTitle": "Choose a username",
+    "pseudoPlaceholder": "Your username",
+    "referralLabel": "Referral code (optional)",
+    "finish": "Let's go!"
+  }
+}
