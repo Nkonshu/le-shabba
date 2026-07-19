@@ -33,7 +33,10 @@ export function DocumentReader({
   initialPage,
   onClose,
 }: {
-  documentId: string;
+  // null pour un fichier qui n'est pas une ligne de la table `documents` (pièce jointe de sujet,
+  // réponse ou commentaire) — dans ce cas on saute tout ce qui suppose une vraie ligne
+  // `documents` (vues, reprise de lecture liée par clé étrangère), le lecteur reste utilisable.
+  documentId: string | null;
   title: string;
   subject: string;
   fileUrl: string;
@@ -43,6 +46,7 @@ export function DocumentReader({
   const t = useTranslations("reader");
   const supabase = useMemo(() => createClient(), []);
   const isImage = IMAGE_EXTENSIONS.includes(getExtension(fileUrl));
+  const cacheId = documentId ?? fileUrl;
 
   const [zoom, setZoom] = useState(1);
   const [rotation, setRotation] = useState(0);
@@ -59,20 +63,21 @@ export function DocumentReader({
   const [offlineAvailable, setOfflineAvailable] = useState(false);
   const [downloading, setDownloading] = useState(false);
 
-  // Incrémente views_count une seule fois à l'ouverture (Annexe A.14 / §4.3).
+  // Incrémente views_count une seule fois à l'ouverture (Annexe A.14 / §4.3) — seulement pour un
+  // vrai document, jamais pour une pièce jointe (pas de ligne `documents` à mettre à jour).
   useEffect(() => {
-    supabase.rpc("increment_document_views", { doc_id: documentId });
+    if (documentId) supabase.rpc("increment_document_views", { doc_id: documentId });
+    isDocumentOffline(cacheId).then(setOfflineAvailable);
     supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
-    isDocumentOffline(documentId).then(setOfflineAvailable);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentId]);
+  }, [documentId, cacheId]);
 
   async function handleDownloadOffline() {
     setDownloading(true);
     try {
-      await downloadDocumentForOffline({ id: documentId, title, subject, fileUrl });
+      await downloadDocumentForOffline({ id: cacheId, title, subject, fileUrl });
       setOfflineAvailable(true);
-      supabase.rpc("increment_document_downloads", { doc_id: documentId });
+      if (documentId) supabase.rpc("increment_document_downloads", { doc_id: documentId });
       toast.success(t("downloadedForOffline"));
     } catch {
       toast.error(t("downloadError"));
@@ -90,7 +95,7 @@ export function DocumentReader({
   // Reprise de lecture : upsert débouncé (~1s) à chaque changement de page réel, jamais à chaque
   // défilement brut, pour ne pas saturer une connexion lente (Annexe A.14).
   useEffect(() => {
-    if (isImage || !userId) return;
+    if (isImage || !userId || !documentId) return;
     const id = setTimeout(() => {
       supabase.from("document_reading_progress").upsert(
         {
@@ -104,7 +109,7 @@ export function DocumentReader({
     }, PROGRESS_DEBOUNCE_MS);
     return () => clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, isImage, userId]);
+  }, [currentPage, isImage, userId, documentId]);
 
   useEffect(() => {
     if (isImage) return;
