@@ -122,7 +122,9 @@ export function OnboardingWizard({
       return;
     }
 
-    router.push("/");
+    // Un seul appel, pas de router.push("/") en parallèle : /onboarding fait déjà
+    // `if (profile) redirect(...)` côté serveur, refresh() suffit à le déclencher une fois le
+    // profil créé, sans risquer que les deux navigations se marchent dessus.
     router.refresh();
   }
 
