@@ -1,8 +1,5 @@
-import { ChatCircle, Eye, CheckCircle } from "@phosphor-icons/react/dist/ssr";
 import { useTranslations } from "next-intl";
 import { Link } from "@/src/i18n/navigation";
-import { VoteArrows } from "@/src/components/interactions/vote-arrows";
-import { FavoriteStar } from "@/src/components/interactions/favorite-star";
 
 export type TopicCardData = {
   id: string;
@@ -23,9 +20,11 @@ export type TopicCardData = {
   isFavorited?: boolean;
 };
 
-export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: string | null }) {
+// Carte de liste : uniquement des stats non interactives (façon page "Newest Questions" de Stack
+// Overflow) — voter/favoriser/consulter l'historique ne sont possibles qu'une fois le sujet ouvert
+// (voir la colonne verticale interactive sur forum/[id]/page.tsx, volontairement identique partout).
+export function TopicCard({ topic }: { topic: TopicCardData; userId: string | null }) {
   const t = useTranslations("forum");
-  const ti = useTranslations("interactions");
   const excerpt = topic.content.replace(/<[^>]+>/g, "").trim().slice(0, 140);
 
   return (
@@ -36,35 +35,18 @@ export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: str
           : "border-neutral-200 dark:border-neutral-800"
       }`}
     >
-      <div className="flex shrink-0 flex-col items-center gap-1">
-        <VoteArrows
-          targetType="topic"
-          targetId={topic.id}
-          userId={userId}
-          initialCount={topic.votes_count}
-          initialVote={topic.userVote ?? null}
-        />
-        <FavoriteStar
-          targetType="topic"
-          targetId={topic.id}
-          userId={userId}
-          initialFavorited={topic.isFavorited ?? false}
-        />
-        <div
-          className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs ${
+      <div className="flex w-16 shrink-0 flex-col items-end gap-1 pt-0.5 text-right text-xs text-neutral-500">
+        <p>{t("votesCount", { count: topic.votes_count })}</p>
+        <p
+          className={
             topic.hasSolution
-              ? "bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300"
-              : "bg-neutral-100 text-neutral-500 dark:bg-neutral-900"
-          }`}
+              ? "rounded bg-green-50 px-1.5 py-0.5 text-green-700 dark:bg-green-950 dark:text-green-300"
+              : ""
+          }
         >
-          {topic.hasSolution && <CheckCircle size={14} weight="fill" />}
-          <ChatCircle size={14} />
-          {topic.answersCount}
-        </div>
-        <div title={ti("viewsCount", { count: topic.views_count })} className="flex items-center gap-1 text-xs text-neutral-400">
-          <Eye size={14} />
-          {topic.views_count}
-        </div>
+          {t("answersCountStat", { count: topic.answersCount })}
+        </p>
+        <p>{t("viewsCount", { count: topic.views_count })}</p>
       </div>
 
       <div className="flex flex-1 flex-col gap-1.5">

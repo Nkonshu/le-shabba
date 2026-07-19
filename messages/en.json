@@ -227,6 +227,8 @@
     "emptyAnswers": "No answers yet.",
     "help": "Help",
     "viewsCount": "{count} views",
+    "votesCount": "{count} votes",
+    "answersCountStat": "{count} answers",
     "proposalsCount": "{count} proposals",
     "follow": "Follow",
     "unfollow": "Unfollow",
