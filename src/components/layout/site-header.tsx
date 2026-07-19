@@ -25,26 +25,30 @@ export async function SiteHeader() {
 
   return (
     <header className="border-b border-neutral-100 dark:border-neutral-900">
-      <div className="flex items-center gap-3 px-4 py-3">
-        <Link href="/" className="shrink-0 text-lg font-black">
-          Le Shabba
-        </Link>
-
-        <nav className="hidden shrink-0 items-center gap-1 sm:flex">
-          <Link href="/a-propos" className={META_LINK_CLASS}>
-            {t("about")}
+      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3">
+        <div className="flex shrink-0 items-center gap-3">
+          <Link href="/" className="shrink-0 text-lg font-black">
+            Le Shabba
           </Link>
-          <Link href="/aide" className={META_LINK_CLASS}>
-            {t("help")}
-          </Link>
-          <Link href="/contact" className={META_LINK_CLASS}>
-            {t("contact")}
-          </Link>
-        </nav>
 
-        <SearchBar />
+          <nav className="hidden shrink-0 items-center gap-1 sm:flex">
+            <Link href="/a-propos" className={META_LINK_CLASS}>
+              {t("about")}
+            </Link>
+            <Link href="/aide" className={META_LINK_CLASS}>
+              {t("help")}
+            </Link>
+            <Link href="/contact" className={META_LINK_CLASS}>
+              {t("contact")}
+            </Link>
+          </nav>
+        </div>
 
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex justify-center">
+          <SearchBar />
+        </div>
+
+        <div className="flex shrink-0 items-center justify-self-end gap-1">
           <LanguageSwitcher />
           {profile ? (
             <>
