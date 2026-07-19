@@ -11,9 +11,13 @@ function safeNext(next: string | null): string | null {
 }
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = safeNext(searchParams.get("next"));
+  const requestUrl = new URL(request.url);
+  const code = requestUrl.searchParams.get("code");
+  const next = safeNext(requestUrl.searchParams.get("next"));
+  // request.url reflète l'hôte tel que vu par le serveur Next.js derrière le reverse proxy
+  // (`localhost:3000` en interne), pas le domaine public — jamais fiable pour construire une
+  // redirection, même raison que le bouton de connexion Google (NEXT_PUBLIC_SITE_URL).
+  const origin = process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin;
 
   if (code) {
     const supabase = await createClient();
