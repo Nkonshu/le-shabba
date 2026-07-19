@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { CaretUp, CaretDown } from "@phosphor-icons/react";
+import { CaretUp, CaretDown, ThumbsUp, ThumbsDown } from "@phosphor-icons/react";
 import { useAuthGate } from "@/src/components/auth/auth-modal-provider";
 import { toggleVote, type VoteTargetType } from "@/src/lib/interactions";
 
@@ -60,7 +60,7 @@ export function VoteArrows({
             vote === 1 ? "text-accent-blue" : "text-neutral-400"
           }`}
         >
-          <CaretUp size={14} weight={vote === 1 ? "fill" : "regular"} />
+          <ThumbsUp size={14} weight={vote === 1 ? "fill" : "regular"} />
         </button>
         <span className="min-w-[1.5ch] text-center text-xs font-medium">{count}</span>
         <button
@@ -71,7 +71,7 @@ export function VoteArrows({
             vote === -1 ? "text-accent-blue" : "text-neutral-400"
           }`}
         >
-          <CaretDown size={14} weight={vote === -1 ? "fill" : "regular"} />
+          <ThumbsDown size={14} weight={vote === -1 ? "fill" : "regular"} />
         </button>
       </div>
     );
