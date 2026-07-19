@@ -10,7 +10,7 @@ const DOC_SELECT =
   "id, title, type, status, subject, year, votes_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)";
 
 const TOPIC_SELECT =
-  "id, title, content, subject, status, votes_count, views_count, created_at, tags, level:education_levels(label), author:profiles(full_name, avatar_url), forum_answers(count)";
+  "id, title, content, subject, status, votes_count, views_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)";
 
 function enrichTopics(rows: unknown[], solvedSet: Set<string>): TopicCardData[] {
   return (rows as Record<string, unknown>[]).map((row) => {

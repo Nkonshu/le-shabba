@@ -135,7 +135,7 @@ async function SchoolsTab() {
   const [{ data: requests }, { data: schools }, { data: memberships }] = await Promise.all([
     supabase
       .from("school_requests")
-      .select("id, school_name, estimated_students, desired_subdomain, created_at, requester:profiles(full_name)")
+      .select("id, school_name, estimated_students, desired_subdomain, created_at, requester:profiles!school_requests_requester_id_fkey(full_name)")
       .eq("status", "pending")
       .order("created_at", { ascending: true }),
     supabase.from("schools").select("id, name, subdomain, plan").order("created_at", { ascending: false }),
@@ -159,7 +159,7 @@ async function PaymentsTab() {
   const [{ data: pending }, { data: confirmed }] = await Promise.all([
     supabase
       .from("payments")
-      .select("id, purpose, method, amount, currency, external_reference, created_at, user:profiles(full_name)")
+      .select("id, purpose, method, amount, currency, external_reference, created_at, user:profiles!payments_user_id_fkey(full_name)")
       .eq("method", "manual_whatsapp_om")
       .eq("status", "pending")
       .order("created_at", { ascending: true }),

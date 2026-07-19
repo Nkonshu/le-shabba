@@ -52,7 +52,7 @@ export default async function TopicPage({
   const { data: topic } = await supabase
     .from("forum_topics")
     .select(
-      "id, title, content, subject, status, canonical_topic_id, votes_count, views_count, created_at, tags, author_id, level:education_levels(label), author:profiles(full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
+      "id, title, content, subject, status, canonical_topic_id, votes_count, views_count, created_at, tags, author_id, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
     )
     .eq("id", id)
     .maybeSingle();

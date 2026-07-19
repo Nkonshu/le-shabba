@@ -65,6 +65,14 @@ export function TopicDiscussion({
     return Boolean(userId && (answer.author?.id === userId || isStaff));
   }
 
+  function openDialog(state: DialogState) {
+    if (!userId) {
+      router.push("/login");
+      return;
+    }
+    setDialog(state);
+  }
+
   async function handleSubmit(content: string, file: File | null) {
     if (!dialog || !userId) return;
 
@@ -152,7 +160,7 @@ export function TopicDiscussion({
               canReport={canReport}
               topicTitle={topicTitle}
               onComment={() =>
-                setDialog({
+                openDialog({
                   type: "comment",
                   parentId: proposal.id,
                   citedId: null,
@@ -193,7 +201,7 @@ export function TopicDiscussion({
                       canReport={canReport}
               topicTitle={topicTitle}
                       onReply={() =>
-                        setDialog({
+                        openDialog({
                           type: "comment",
                           parentId: proposal.id,
                           citedId: comment.id,
@@ -222,24 +230,22 @@ export function TopicDiscussion({
         ))
       )}
 
-      {userId && (
-        <button
-          onClick={() =>
-            setDialog({
-              type: "proposal",
-              parentId: null,
-              citedId: null,
-              citedAuthorName: null,
-              editingId: null,
-              initialContent: "",
-            })
-          }
-          className="fixed bottom-6 right-6 flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-accent-blue px-5 font-medium text-white shadow-lg"
-        >
-          <ChatCircle size={20} />
-          {t("help")}
-        </button>
-      )}
+      <button
+        onClick={() =>
+          openDialog({
+            type: "proposal",
+            parentId: null,
+            citedId: null,
+            citedAuthorName: null,
+            editingId: null,
+            initialContent: "",
+          })
+        }
+        className="fixed bottom-6 right-6 flex min-h-14 min-w-14 items-center justify-center gap-2 rounded-full bg-accent-blue px-5 font-medium text-white shadow-lg"
+      >
+        <ChatCircle size={20} />
+        {t("help")}
+      </button>
 
       {dialog && (
         <ReplyDialog

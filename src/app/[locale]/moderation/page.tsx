@@ -38,7 +38,7 @@ export default async function ModerationPage({
   const supabase = await createClient();
   const { data: flags } = await supabase
     .from("flags")
-    .select("id, target_type, target_id, reason, note, created_at, reporter:profiles(full_name)")
+    .select("id, target_type, target_id, reason, note, created_at, reporter:profiles!flags_reporter_id_fkey(full_name)")
     .eq("status", "open")
     .order("created_at", { ascending: true });
 

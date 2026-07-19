@@ -62,7 +62,7 @@ export default async function SchoolModerationPage({
   const { data: flags } = targetIds.length
     ? await supabase
         .from("flags")
-        .select("id, target_type, target_id, reason, note, created_at, reporter:profiles(full_name)")
+        .select("id, target_type, target_id, reason, note, created_at, reporter:profiles!flags_reporter_id_fkey(full_name)")
         .eq("status", "open")
         .in("target_id", targetIds)
         .order("created_at", { ascending: true })
