@@ -13,6 +13,7 @@ import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
 import { getHotNetworkItems } from "@/src/lib/hot-network";
 import { StatsPanel } from "@/src/components/interactions/stats-panel";
 import { AttachmentLink } from "@/src/components/interactions/attachment-link";
+import { TopicManageButtons } from "@/src/components/forum/topic-manage-buttons";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 import type { Metadata } from "next";
 
@@ -131,6 +132,9 @@ export default async function TopicPage({
     badges_or: number;
   } | null;
   const isSolved = proposals.some((p) => p.is_solution);
+  const hasAcceptedOrVotedAnswer = proposals.some((p) => p.is_solution || p.votes_count > 0);
+  const canEditTopic = Boolean(user && (user.id === topic.author_id || isStaff));
+  const canDeleteTopic = Boolean(user && (isStaff || (user.id === topic.author_id && !hasAcceptedOrVotedAnswer)));
 
   const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
   const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }, hotItems] = await Promise.all([
@@ -146,6 +150,15 @@ export default async function TopicPage({
       <div className="flex items-start justify-between gap-2">
         <h1 className="text-xl font-black">{topic.title}</h1>
         <div className="flex items-center gap-1">
+          <TopicManageButtons
+            topicId={topic.id}
+            initialTitle={topic.title}
+            initialContent={topic.content}
+            canEdit={canEditTopic}
+            canDelete={canDeleteTopic}
+            deleteBlockedReason={hasAcceptedOrVotedAnswer ? t("deleteBlockedHasAnswers") : null}
+            basePath="/forum"
+          />
           <ReportButton targetType="topic" targetId={topic.id} userId={user?.id ?? null} canReport={canReport} />
           <ShareButton
             contentType="topic"

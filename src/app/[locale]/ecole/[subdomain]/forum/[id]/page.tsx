@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentProfile, requireUser } from "@/src/lib/dal";
-import { getSchoolBySubdomain, getMembership } from "@/src/lib/schools";
+import { getSchoolBySubdomain, getMembership, canModerate } from "@/src/lib/schools";
 import { VoteArrows } from "@/src/components/interactions/vote-arrows";
 import { FavoriteStar } from "@/src/components/interactions/favorite-star";
 import { FollowButton } from "@/src/components/forum/follow-button";
@@ -10,6 +10,7 @@ import { TopicDiscussion } from "@/src/components/forum/topic-discussion";
 import { ReportButton } from "@/src/components/moderation/report-button";
 import { RankBadge } from "@/src/components/reputation/rank-badge";
 import { AttachmentLink } from "@/src/components/interactions/attachment-link";
+import { TopicManageButtons } from "@/src/components/forum/topic-manage-buttons";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 
 export default async function SchoolTopicPage({
@@ -37,6 +38,7 @@ export default async function SchoolTopicPage({
 
   const profile = await getCurrentProfile();
   const isStaff = Boolean(profile && ["admin", "super_admin"].includes(profile.role));
+  const isMiniAdminForum = canModerate(membership, "forum");
   const canReport = Boolean(profile && (isStaff || profile.genie_points >= 1200));
 
   const supabase = await createClient();
@@ -94,6 +96,11 @@ export default async function SchoolTopicPage({
       comments: enriched.filter((a) => a.parent_id === proposal.id),
     }));
 
+  const hasAcceptedOrVotedAnswer = proposals.some((p) => p.is_solution || p.votes_count > 0);
+  const isMiniAdmin = isStaff || isMiniAdminForum;
+  const canEditTopic = Boolean(user.id === topic.author_id || isMiniAdmin);
+  const canDeleteTopic = Boolean(isMiniAdmin || (user.id === topic.author_id && !hasAcceptedOrVotedAnswer));
+
   const level = topic.level as unknown as { label: string } | null;
   const author = topic.author as unknown as {
     full_name: string | null;
@@ -109,6 +116,15 @@ export default async function SchoolTopicPage({
       <div className="flex items-start justify-between gap-2">
         <h1 className="text-xl font-black">{topic.title}</h1>
         <div className="flex items-center gap-1">
+          <TopicManageButtons
+            topicId={topic.id}
+            initialTitle={topic.title}
+            initialContent={topic.content}
+            canEdit={canEditTopic}
+            canDelete={canDeleteTopic}
+            deleteBlockedReason={hasAcceptedOrVotedAnswer ? t("deleteBlockedHasAnswers") : null}
+            basePath={`/ecole/${subdomain}/forum`}
+          />
           <ReportButton targetType="topic" targetId={topic.id} userId={user.id} canReport={canReport} />
         </div>
       </div>
@@ -175,7 +191,7 @@ export default async function SchoolTopicPage({
         topicAuthorId={topic.author_id}
         proposals={proposals}
         userId={user.id}
-        isStaff={isStaff}
+        isStaff={isMiniAdmin}
         canReport={canReport}
         schoolId={school.id}
       />

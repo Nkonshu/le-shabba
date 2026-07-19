@@ -68,6 +68,24 @@ export function TopicDiscussion({
     return Boolean(userId && (answer.author?.id === userId || isStaff));
   }
 
+  // Règles façon Stack Overflow (cf. policy RLS 0049/0050, ceci n'en est que le reflet côté UI) :
+  // éditer reste toujours permis (canManage ci-dessus) ; supprimer est bloqué pour l'auteur d'une
+  // proposition dès qu'elle est acceptée ou votée — un commentaire, lui, reste librement supprimable.
+  function canDelete(answer: AnswerData) {
+    if (!userId) return false;
+    if (isStaff) return true;
+    if (answer.author?.id !== userId) return false;
+    if (answer.type === "comment") return true;
+    return !answer.is_solution && answer.votes_count <= 0;
+  }
+
+  function deleteBlockedReason(answer: AnswerData) {
+    if (answer.type !== "proposal") return null;
+    if (answer.is_solution) return t("deleteBlockedIsSolution");
+    if (answer.votes_count > 0) return t("deleteBlockedHasVotes");
+    return null;
+  }
+
   function openDialog(state: DialogState) {
     if (!authGate(userId)) return;
     setDialog(state);
@@ -130,6 +148,10 @@ export function TopicDiscussion({
   }
 
   async function handleDelete(answer: AnswerData, hasComments: boolean) {
+    if (!canDelete(answer)) {
+      toast.error(deleteBlockedReason(answer) ?? t("confirmDelete"));
+      return;
+    }
     const message = hasComments ? t("confirmDeleteWithComments") : t("confirmDelete");
     if (!window.confirm(message)) return;
     await supabase.from("forum_answers").delete().eq("id", answer.id);
@@ -155,6 +177,8 @@ export function TopicDiscussion({
               citedAuthorName={null}
               userId={userId}
               canManage={canManage(proposal)}
+              canDelete={canDelete(proposal)}
+              deleteBlockedReason={deleteBlockedReason(proposal)}
               canMarkSolution={Boolean(userId && (userId === topicAuthorId || isStaff) && !proposal.is_solution)}
               isTopicAuthorProposal={false}
               canReport={canReport}
@@ -196,6 +220,7 @@ export function TopicDiscussion({
                       }
                       userId={userId}
                       canManage={canManage(comment)}
+                      canDelete={canDelete(comment)}
                       canReport={canReport}
                       onReply={() =>
                         openDialog({

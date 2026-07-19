@@ -40,6 +40,8 @@ export function AnswerCard({
   citedAuthorName,
   userId,
   canManage,
+  canDelete,
+  deleteBlockedReason,
   canMarkSolution,
   isTopicAuthorProposal,
   canReport,
@@ -54,6 +56,8 @@ export function AnswerCard({
   citedAuthorName: string | null;
   userId: string | null;
   canManage: boolean;
+  canDelete: boolean;
+  deleteBlockedReason?: string | null;
   canMarkSolution: boolean;
   isTopicAuthorProposal: boolean;
   canReport: boolean;
@@ -180,7 +184,14 @@ export function AnswerCard({
               <button onClick={onEdit} aria-label={tc("edit")} title={tc("edit")} className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50">
                 <PencilSimple size={14} />
               </button>
-              <button onClick={onDelete} aria-label={tc("delete")} title={tc("delete")} className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400 hover:text-red-600">
+              <button
+                onClick={onDelete}
+                aria-label={tc("delete")}
+                title={canDelete ? tc("delete") : (deleteBlockedReason ?? tc("delete"))}
+                className={`flex min-h-11 min-w-11 items-center justify-center ${
+                  canDelete ? "text-neutral-400 hover:text-red-600" : "text-neutral-300 dark:text-neutral-700"
+                }`}
+              >
                 <Trash size={14} />
               </button>
             </>

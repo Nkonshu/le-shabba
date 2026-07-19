@@ -15,6 +15,7 @@ export function CommentRow({
   citedAuthorName,
   userId,
   canManage,
+  canDelete,
   canReport,
   onReply,
   onEdit,
@@ -24,6 +25,7 @@ export function CommentRow({
   citedAuthorName: string | null;
   userId: string | null;
   canManage: boolean;
+  canDelete: boolean;
   canReport: boolean;
   onReply: () => void;
   onEdit: () => void;
@@ -62,9 +64,11 @@ export function CommentRow({
             <button onClick={onEdit} aria-label={tc("edit")} title={tc("edit")} className="flex min-h-8 min-w-8 items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50">
               <PencilSimple size={13} />
             </button>
-            <button onClick={onDelete} aria-label={tc("delete")} title={tc("delete")} className="flex min-h-8 min-w-8 items-center justify-center text-neutral-400 hover:text-red-600">
-              <Trash size={13} />
-            </button>
+            {canDelete && (
+              <button onClick={onDelete} aria-label={tc("delete")} title={tc("delete")} className="flex min-h-8 min-w-8 items-center justify-center text-neutral-400 hover:text-red-600">
+                <Trash size={13} />
+              </button>
+            )}
           </>
         )}
       </div>
