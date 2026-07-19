@@ -13,7 +13,6 @@ export default async function TermsPage({
       <h1 className="text-2xl font-black">
         {isFr ? "Conditions générales d'utilisation" : "Terms of use"}
       </h1>
-      <DraftNotice isFr={isFr} />
 
       {isFr ? (
         <div className="reading-measure flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-300">
@@ -45,9 +44,13 @@ export default async function TermsPage({
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Mineurs</h2>
             <p>
-              Le service s&apos;adresse notamment à un public scolaire, en partie mineur. [Section à
-              compléter sur les conditions d&apos;usage par un mineur selon le régime applicable dans
-              chaque pays du périmètre.]
+              Le service s&apos;adresse notamment à un public scolaire, en partie mineur. L&apos;usage
+              par un mineur doit se faire avec l&apos;accord d&apos;un parent, d&apos;un tuteur légal,
+              ou dans le cadre d&apos;un établissement scolaire inscrit sur la plateforme (un espace
+              école), ce dernier étant réputé avoir obtenu les autorisations nécessaires lorsqu&apos;il
+              y inscrit ses élèves. Le Shabba n&apos;exige pas de justificatif d&apos;âge à
+              l&apos;inscription mais se réserve le droit de suspendre un compte en cas de signalement
+              d&apos;un usage non conforme à ces conditions par un mineur non accompagné.
             </p>
           </section>
           <section>
@@ -62,6 +65,7 @@ export default async function TermsPage({
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Droit applicable</h2>
             <p>Les présentes conditions sont soumises au droit français.</p>
           </section>
+          <DraftNotice isFr={isFr} />
         </div>
       ) : (
         <div className="reading-measure flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-300">
@@ -92,9 +96,12 @@ export default async function TermsPage({
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Minors</h2>
             <p>
-              The service is aimed in part at a school-age audience, some of whom are minors. [Section
-              to be completed on the conditions of use by a minor per the applicable regime in each
-              country in scope.]
+              The service is aimed in part at a school-age audience, some of whom are minors. Use by a
+              minor must happen with the agreement of a parent, legal guardian, or within the context
+              of a school registered on the platform (a school space), the latter being deemed to have
+              obtained the necessary authorizations when enrolling its students. Le Shabba does not
+              require proof of age at sign-up but reserves the right to suspend an account if a report
+              shows use by an unaccompanied minor that doesn&apos;t comply with these terms.
             </p>
           </section>
           <section>
@@ -109,6 +116,7 @@ export default async function TermsPage({
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Governing law</h2>
             <p>These terms are governed by French law.</p>
           </section>
+          <DraftNotice isFr={isFr} />
         </div>
       )}
     </main>

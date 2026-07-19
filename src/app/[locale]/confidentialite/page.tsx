@@ -12,7 +12,6 @@ export default async function PrivacyPage({
   return (
     <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10">
       <h1 className="text-2xl font-black">{isFr ? "Politique de confidentialité" : "Privacy policy"}</h1>
-      <DraftNotice isFr={isFr} />
 
       {isFr ? (
         <div className="reading-measure flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-300">
@@ -28,10 +27,16 @@ export default async function PrivacyPage({
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Mineurs</h2>
             <p>
-              Une partie du public de Le Shabba est mineure. Le pseudo (distinct du nom réel) est
-              encouragé plutôt que le nom légal, précisément pour protéger l&apos;identité des plus
-              jeunes utilisateurs. [Section à compléter avec le régime applicable au consentement
-              parental selon les pays concernés.]
+              Une partie du public de Le Shabba est mineure, notamment dans le cadre des espaces
+              école. Le pseudo (distinct du nom réel) est encouragé plutôt que le nom légal,
+              précisément pour protéger l&apos;identité des plus jeunes utilisateurs, et nous ne
+              collectons jamais plus de données auprès d&apos;un mineur qu&apos;auprès d&apos;un
+              adulte (pas de géolocalisation précise, aucun profilage publicitaire). Nous recommandons
+              qu&apos;un élève mineur utilise le service avec l&apos;accord d&apos;un parent, d&apos;un
+              tuteur légal, ou dans le cadre encadré d&apos;un établissement scolaire inscrit sur la
+              plateforme. Un parent ou tuteur légal peut à tout moment nous contacter (voir{" "}
+              <Link className="text-accent-blue" href="/contact">Contact</Link>) pour consulter,
+              faire rectifier ou supprimer les données d&apos;un mineur dont il a la responsabilité.
             </p>
           </section>
           <section>
@@ -61,6 +66,7 @@ export default async function PrivacyPage({
               documents que tu télécharges pour une consultation hors-ligne.
             </p>
           </section>
+          <DraftNotice isFr={isFr} />
         </div>
       ) : (
         <div className="reading-measure flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-300">
@@ -76,10 +82,15 @@ export default async function PrivacyPage({
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Minors</h2>
             <p>
-              Part of Le Shabba&apos;s audience is a minor. A username distinct from your real name is
-              encouraged rather than your legal name, specifically to protect younger users&apos;
-              identity. [Section to be completed with the applicable parental-consent regime per
-              country.]
+              Part of Le Shabba&apos;s audience is a minor, notably within school spaces. A username
+              distinct from your real name is encouraged rather than your legal name, specifically to
+              protect younger users&apos; identity, and we never collect more data from a minor than
+              from an adult (no precise geolocation, no advertising profiling). We recommend that a
+              minor student use the service with the agreement of a parent, legal guardian, or within
+              the supervised context of a school registered on the platform. A parent or legal guardian
+              can contact us at any time (see{" "}
+              <Link className="text-accent-blue" href="/contact">Contact</Link>) to review, correct, or
+              delete the data of a minor in their care.
             </p>
           </section>
           <section>
@@ -107,6 +118,7 @@ export default async function PrivacyPage({
               app may also store documents you download locally (IndexedDB) for offline reading.
             </p>
           </section>
+          <DraftNotice isFr={isFr} />
         </div>
       )}
     </main>

@@ -17,6 +17,12 @@ export default async function HelpPage({
         <a href="#forum" className="text-accent-blue">
           {isFr ? "Le forum" : "The forum"}
         </a>
+        <a href="#ecoles" className="text-accent-blue">
+          {isFr ? "Les espaces école" : "School spaces"}
+        </a>
+        <a href="#horsligne" className="text-accent-blue">
+          {isFr ? "Hors-ligne et Premium" : "Offline and Premium"}
+        </a>
       </nav>
 
       {isFr ? (
@@ -61,6 +67,27 @@ export default async function HelpPage({
               prévenu des nouvelles réponses, et mettre en favori ce que tu veux retrouver plus tard.
             </p>
           </section>
+
+          <section id="ecoles" className="flex flex-col gap-2">
+            <h2 className="font-black text-neutral-900 dark:text-neutral-50">Les espaces école</h2>
+            <p>
+              Un établissement peut demander un espace dédié : un forum privé réservé à ses élèves, géré
+              par un ou plusieurs responsables (rôle <strong>admin d&apos;école</strong>) qui peuvent à
+              leur tour nommer des <strong>modérateurs</strong> parmi les élèves. Le contenu publié dans
+              un espace école reste privé à cet établissement, sauf si un responsable choisit
+              explicitement de le partager vers la bibliothèque publique.
+            </p>
+          </section>
+
+          <section id="horsligne" className="flex flex-col gap-2">
+            <h2 className="font-black text-neutral-900 dark:text-neutral-50">Hors-ligne et Premium</h2>
+            <p>
+              Tu peux télécharger n&apos;importe quel document pour le consulter sans connexion — il
+              reste disponible dans <strong>Téléchargements</strong>. Un abonnement Premium (accès
+              hors-ligne étendu) est proposé depuis tes <strong>Paramètres</strong>, payable par
+              WhatsApp/Orange Money ou PayPal.
+            </p>
+          </section>
         </div>
       ) : (
         <div className="reading-measure flex flex-col gap-8 text-sm text-neutral-600 dark:text-neutral-300">
@@ -100,6 +127,26 @@ export default async function HelpPage({
             <p>
               You can vote on a proposal just like a comment, follow a topic to get notified of new
               answers, and favorite anything you want to find again later.
+            </p>
+          </section>
+
+          <section id="ecoles" className="flex flex-col gap-2">
+            <h2 className="font-black text-neutral-900 dark:text-neutral-50">School spaces</h2>
+            <p>
+              A school can request a dedicated space: a private forum reserved for its students,
+              managed by one or more <strong>school admins</strong>, who can in turn appoint{" "}
+              <strong>moderators</strong> among the students. Content published in a school space stays
+              private to that school unless an admin explicitly chooses to share it to the public
+              library.
+            </p>
+          </section>
+
+          <section id="horsligne" className="flex flex-col gap-2">
+            <h2 className="font-black text-neutral-900 dark:text-neutral-50">Offline and Premium</h2>
+            <p>
+              You can download any document to read it without a connection — it stays available under{" "}
+              <strong>Downloads</strong>. A Premium subscription (extended offline access) is offered
+              from your <strong>Settings</strong>, payable via WhatsApp/Orange Money or PayPal.
             </p>
           </section>
         </div>

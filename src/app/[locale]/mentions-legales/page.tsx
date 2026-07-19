@@ -1,4 +1,5 @@
 import { DraftNotice } from "@/src/components/legal/draft-notice";
+import { Link } from "@/src/i18n/navigation";
 
 export default async function LegalNoticePage({
   params,
@@ -11,17 +12,17 @@ export default async function LegalNoticePage({
   return (
     <main className="mx-auto flex max-w-xl flex-col gap-4 px-4 py-10">
       <h1 className="text-2xl font-black">{isFr ? "Mentions légales" : "Legal notice"}</h1>
-      <DraftNotice isFr={isFr} />
 
       {isFr ? (
         <div className="reading-measure flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-300">
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Éditeur du site</h2>
-            <p>[Nom de l&apos;éditeur — personne physique ou morale], [adresse], [email de contact].</p>
-          </section>
-          <section>
-            <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Directeur de la publication</h2>
-            <p>[Nom du directeur de la publication].</p>
+            <p>
+              Le Shabba est édité à titre indépendant dans le cadre du développement de la plateforme.
+              Pour toute demande d&apos;identification légale, notification ou réclamation, le
+              responsable de la publication est joignable via la page{" "}
+              <Link className="text-accent-blue" href="/contact">Contact</Link>.
+            </p>
           </section>
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Hébergement</h2>
@@ -38,16 +39,18 @@ export default async function LegalNoticePage({
               son auteur, qui certifie être autorisé à le partager au moment de la publication.
             </p>
           </section>
+          <DraftNotice isFr={isFr} />
         </div>
       ) : (
         <div className="reading-measure flex flex-col gap-4 text-sm text-neutral-600 dark:text-neutral-300">
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Publisher</h2>
-            <p>[Publisher name — individual or company], [address], [contact email].</p>
-          </section>
-          <section>
-            <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Publication director</h2>
-            <p>[Name of the publication director].</p>
+            <p>
+              Le Shabba is published independently as part of the platform&apos;s development. For any
+              legal identification request, notice, or complaint, the person responsible for
+              publication can be reached via the{" "}
+              <Link className="text-accent-blue" href="/contact">Contact</Link> page.
+            </p>
           </section>
           <section>
             <h2 className="font-medium text-neutral-900 dark:text-neutral-50">Hosting</h2>
@@ -64,6 +67,7 @@ export default async function LegalNoticePage({
               certifies they are authorized to share it at the time of publishing.
             </p>
           </section>
+          <DraftNotice isFr={isFr} />
         </div>
       )}
     </main>
