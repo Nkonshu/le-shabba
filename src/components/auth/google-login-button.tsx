@@ -11,7 +11,12 @@ export function GoogleLoginButton({ returnTo }: { returnTo?: string | null }) {
 
   async function continueWithGoogle() {
     setLoading(true);
-    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    // Toujours ancré sur le domaine canonique de l'app, jamais sur window.location.origin : si un
+    // visiteur clique ce bouton alors qu'il se trouve encore par erreur sur un autre domaine (ex.
+    // dev.le-shabba.fr, le domaine de l'instance Supabase elle-même — sans app derrière), la
+    // redirection post-connexion doit revenir sur la vraie app, pas reboucler sur ce domaine.
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const callbackUrl = new URL("/auth/callback", origin);
     if (returnTo) callbackUrl.searchParams.set("next", returnTo);
     await supabase.auth.signInWithOAuth({
       provider: "google",
