@@ -16,10 +16,14 @@ export function TopicForm({
   authorId,
   levels,
   existingTags,
+  schoolId,
+  redirectBasePath = "/forum",
 }: {
   authorId: string;
   levels: Level[];
   existingTags: string[];
+  schoolId?: string;
+  redirectBasePath?: string;
 }) {
   const t = useTranslations("forum");
   const tCommon = useTranslations("common");
@@ -117,6 +121,7 @@ export function TopicForm({
         subject,
         tags,
         attachment_url: attachmentUrl,
+        school_id: schoolId ?? null,
       })
       .select("id")
       .single();
@@ -127,13 +132,18 @@ export function TopicForm({
       return;
     }
 
-    fetch("/api/search/index", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type: "topic", id: inserted.id }),
-    });
+    // Contenu d'école jamais indexé publiquement (privé par défaut, §4.9) — l'index Meilisearch
+    // n'a pas encore de tenant token scopé par école (à construire), donc mieux vaut ne pas indexer
+    // du tout que de risquer d'exposer du contenu privé à une recherche publique.
+    if (!schoolId) {
+      fetch("/api/search/index", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "topic", id: inserted.id }),
+      });
+    }
 
-    router.push(`/forum/${inserted.id}`);
+    router.push(`${redirectBasePath}/${inserted.id}`);
   }
 
   const canGoNext =

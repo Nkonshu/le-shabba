@@ -3,6 +3,7 @@ import { Link } from "@/src/i18n/navigation";
 
 export async function SiteFooter() {
   const t = await getTranslations("nav");
+  const tSchools = await getTranslations("schools");
 
   return (
     <footer className="mt-auto border-t border-neutral-100 px-4 py-6 dark:border-neutral-900">
@@ -15,6 +16,9 @@ export async function SiteFooter() {
         </Link>
         <Link href="/contact" className="hover:text-neutral-900 dark:hover:text-neutral-50">
           {t("contact")}
+        </Link>
+        <Link href="/ecole/creer" className="hover:text-neutral-900 dark:hover:text-neutral-50">
+          {tSchools("createTitle")}
         </Link>
         <Link href="/mentions-legales" className="hover:text-neutral-900 dark:hover:text-neutral-50">
           {t("legalNotice")}

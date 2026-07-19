@@ -30,6 +30,7 @@ export function TopicDiscussion({
   userId,
   isStaff,
   canReport,
+  schoolId,
 }: {
   topicId: string;
   topicTitle: string;
@@ -38,6 +39,7 @@ export function TopicDiscussion({
   userId: string | null;
   isStaff: boolean;
   canReport: boolean;
+  schoolId?: string | null;
 }) {
   const t = useTranslations("forum");
   const router = useRouter();
@@ -111,6 +113,7 @@ export function TopicDiscussion({
         content,
         attachment_url: attachmentUrl,
         cited_answer_id: dialog.citedId,
+        school_id: schoolId ?? null,
       });
     }
 

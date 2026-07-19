@@ -8,6 +8,8 @@ import { UsersTable, type AdminUserRow } from "@/src/components/admin/users-tabl
 import { AdminLogList } from "@/src/components/admin/admin-log-list";
 import { JournalFilters } from "@/src/components/admin/journal-filters";
 import { BugReportsList } from "@/src/components/admin/bug-reports-list";
+import { SchoolRequestsList, type SchoolRequestRow, type SchoolRow } from "@/src/components/admin/school-requests-list";
+import { PaymentsAdminList, type AdminPaymentRow } from "@/src/components/admin/payments-admin-list";
 
 type AuditEntry = {
   id: string;
@@ -29,6 +31,8 @@ export default async function AdminPage({
   const profile = await requireStaff(locale);
   const { tab = "features", action, actor } = await searchParams;
   const t = await getTranslations("admin");
+  const tAdminSchools = await getTranslations("adminSchools");
+  const tAdminPayments = await getTranslations("adminPayments");
 
   const supabase = await createClient();
   const [
@@ -87,6 +91,22 @@ export default async function AdminPage({
         >
           {t("tabAnomalies")}
         </Link>
+        <Link
+          href="/admin?tab=schools"
+          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
+            tab === "schools" ? "border-accent-blue" : "border-transparent text-neutral-500"
+          }`}
+        >
+          {tAdminSchools("tabSchools")}
+        </Link>
+        <Link
+          href="/admin?tab=payments"
+          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
+            tab === "payments" ? "border-accent-blue" : "border-transparent text-neutral-500"
+          }`}
+        >
+          {tAdminPayments("tabPayments")}
+        </Link>
       </div>
 
       {tab === "features" && (
@@ -104,7 +124,58 @@ export default async function AdminPage({
         </div>
       )}
       {tab === "anomalies" && <BugReportsList />}
+      {tab === "schools" && <SchoolsTab />}
+      {tab === "payments" && <PaymentsTab />}
     </main>
+  );
+}
+
+async function SchoolsTab() {
+  const supabase = await createClient();
+  const [{ data: requests }, { data: schools }, { data: memberships }] = await Promise.all([
+    supabase
+      .from("school_requests")
+      .select("id, school_name, estimated_students, desired_subdomain, created_at, requester:profiles(full_name)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true }),
+    supabase.from("schools").select("id, name, subdomain, plan").order("created_at", { ascending: false }),
+    supabase.from("school_memberships").select("school_id"),
+  ]);
+
+  const memberCounts = new Map<string, number>();
+  for (const m of memberships ?? []) {
+    memberCounts.set(m.school_id, (memberCounts.get(m.school_id) ?? 0) + 1);
+  }
+  const schoolRows: SchoolRow[] = (schools ?? []).map((s) => ({
+    ...s,
+    member_count: memberCounts.get(s.id) ?? 0,
+  }));
+
+  return <SchoolRequestsList requests={(requests as unknown as SchoolRequestRow[]) ?? []} schools={schoolRows} />;
+}
+
+async function PaymentsTab() {
+  const supabase = await createClient();
+  const [{ data: pending }, { data: confirmed }] = await Promise.all([
+    supabase
+      .from("payments")
+      .select("id, purpose, method, amount, currency, external_reference, created_at, user:profiles(full_name)")
+      .eq("method", "manual_whatsapp_om")
+      .eq("status", "pending")
+      .order("created_at", { ascending: true }),
+    supabase.from("payments").select("amount, currency").eq("status", "confirmed"),
+  ]);
+
+  const revenueByCurrency = new Map<string, number>();
+  for (const p of confirmed ?? []) {
+    revenueByCurrency.set(p.currency, (revenueByCurrency.get(p.currency) ?? 0) + Number(p.amount));
+  }
+
+  return (
+    <PaymentsAdminList
+      pending={(pending as unknown as AdminPaymentRow[]) ?? []}
+      revenue={[...revenueByCurrency.entries()].map(([currency, total]) => ({ currency, total }))}
+    />
   );
 }
 

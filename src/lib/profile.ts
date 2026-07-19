@@ -24,6 +24,8 @@ export type Profile = {
   last_activity_date: string | null;
   referred_by: string | null;
   referral_activated_at: string | null;
+  is_premium: boolean;
+  premium_until: string | null;
 };
 
 export function isCurrentlyBanned(profile: Pick<Profile, "is_banned" | "banned_until">) {
