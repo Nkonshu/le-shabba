@@ -1,0 +1,201 @@
+import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { createClient } from "@/src/utils/supabase/server";
+import { getCurrentProfile, getCurrentUser } from "@/src/lib/dal";
+import { VoteArrows } from "@/src/components/interactions/vote-arrows";
+import { FavoriteStar } from "@/src/components/interactions/favorite-star";
+import { FollowButton } from "@/src/components/forum/follow-button";
+import { TopicDiscussion } from "@/src/components/forum/topic-discussion";
+import { ReportButton } from "@/src/components/moderation/report-button";
+import { ShareButton } from "@/src/components/share/share-button";
+import { RankBadge } from "@/src/components/reputation/rank-badge";
+import type { AnswerData } from "@/src/components/forum/answer-card";
+import type { Metadata } from "next";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}): Promise<Metadata> {
+  const { id } = await params;
+  const supabase = await createClient();
+  const { data: topic } = await supabase.from("forum_topics").select("title, subject").eq("id", id).maybeSingle();
+  if (!topic) return {};
+
+  const description = `${topic.subject} — Le Shabba`;
+  return {
+    title: topic.title,
+    description,
+    openGraph: {
+      title: topic.title,
+      description,
+      images: ["/og-image.png"],
+      url: `/forum/${id}`,
+    },
+  };
+}
+
+export default async function TopicPage({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}) {
+  const { id } = await params;
+  const t = await getTranslations("forum");
+  const user = await getCurrentUser();
+  const profile = await getCurrentProfile();
+  const isStaff = Boolean(profile && ["admin", "super_admin"].includes(profile.role));
+  const canReport = Boolean(profile && (isStaff || profile.genie_points >= 1200));
+
+  const supabase = await createClient();
+  const { data: topic } = await supabase
+    .from("forum_topics")
+    .select(
+      "id, title, content, subject, status, canonical_topic_id, votes_count, views_count, created_at, tags, author_id, level:education_levels(label), author:profiles(full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
+    )
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!topic) {
+    notFound();
+  }
+
+  const { data: answers } = await supabase
+    .from("forum_answers")
+    .select(
+      "id, topic_id, parent_id, author_id, type, content, attachment_url, is_solution, is_flagged, votes_count, cited_answer_id, last_moderated_by, created_at, author:profiles!forum_answers_author_id_fkey(id, full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
+    )
+    .eq("topic_id", id)
+    .order("created_at", { ascending: true });
+
+  const answerIds = (answers ?? []).map((a) => a.id);
+  let userVoteTopic: 1 | -1 | null = null;
+  let isFavoritedTopic = false;
+  let isSubscribed = false;
+  const voteByAnswer = new Map<string, 1 | -1>();
+  const favoritedAnswers = new Set<string>();
+
+  if (user) {
+    const [{ data: topicVote }, { data: topicFav }, { data: sub }, { data: answerVotes }, { data: answerFavs }] =
+      await Promise.all([
+        supabase.from("votes").select("value").eq("user_id", user.id).eq("target_type", "topic").eq("target_id", id).maybeSingle(),
+        supabase.from("favorites").select("id").eq("user_id", user.id).eq("target_type", "topic").eq("target_id", id).maybeSingle(),
+        supabase.from("topic_subscriptions").select("id").eq("user_id", user.id).eq("topic_id", id).maybeSingle(),
+        answerIds.length
+          ? supabase.from("votes").select("target_id, value").eq("user_id", user.id).eq("target_type", "answer").in("target_id", answerIds)
+          : Promise.resolve({ data: [] as { target_id: string; value: number }[] }),
+        answerIds.length
+          ? supabase.from("favorites").select("target_id").eq("user_id", user.id).eq("target_type", "answer").in("target_id", answerIds)
+          : Promise.resolve({ data: [] as { target_id: string }[] }),
+      ]);
+    if (topicVote) userVoteTopic = topicVote.value as 1 | -1;
+    isFavoritedTopic = Boolean(topicFav);
+    isSubscribed = Boolean(sub);
+    for (const v of answerVotes ?? []) voteByAnswer.set(v.target_id, v.value as 1 | -1);
+    for (const f of answerFavs ?? []) favoritedAnswers.add(f.target_id);
+  }
+
+  const enriched = (answers ?? []).map((a) => ({
+    ...(a as unknown as AnswerData),
+    userVote: voteByAnswer.get(a.id) ?? null,
+    isFavorited: favoritedAnswers.has(a.id),
+  }));
+
+  const proposals = enriched
+    .filter((a) => a.parent_id === null)
+    .map((proposal) => ({
+      ...proposal,
+      comments: enriched.filter((a) => a.parent_id === proposal.id),
+    }));
+
+  const level = topic.level as unknown as { label: string } | null;
+  const author = topic.author as unknown as {
+    full_name: string | null;
+    avatar_url: string | null;
+    genie_points: number;
+    badges_bronze: number;
+    badges_argent: number;
+    badges_or: number;
+  } | null;
+  const isSolved = proposals.some((p) => p.is_solution);
+
+  return (
+    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-10">
+      <div className="flex items-start justify-between gap-2">
+        <h1 className="text-xl font-black">{topic.title}</h1>
+        <div className="flex items-center gap-1">
+          <FavoriteStar targetType="topic" targetId={topic.id} userId={user?.id ?? null} initialFavorited={isFavoritedTopic} />
+          <ReportButton targetType="topic" targetId={topic.id} userId={user?.id ?? null} canReport={canReport} />
+          <ShareButton
+            contentType="topic"
+            contentId={topic.id}
+            path={`/forum/${topic.id}`}
+            title={topic.title}
+            isSolved={isSolved}
+            userId={user?.id ?? null}
+          />
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5">
+        {level && (
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] dark:bg-neutral-900">{level.label}</span>
+        )}
+        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+          {topic.subject}
+        </span>
+        {topic.status === "closed_duplicate" && (
+          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500 dark:bg-neutral-900">
+            {t("closedDuplicate")}
+          </span>
+        )}
+        {((topic.tags as string[] | null) ?? []).map((tag) => (
+          <span key={tag} className="rounded-full bg-neutral-50 px-2 py-0.5 text-[10px] text-neutral-400 dark:bg-neutral-950">
+            #{tag}
+          </span>
+        ))}
+      </div>
+
+      <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
+
+      <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-400">
+        <span className="font-medium text-neutral-500">{author?.full_name ?? t("anonymous")}</span>
+        {author && (
+          <RankBadge
+            points={author.genie_points}
+            badgesBronze={author.badges_bronze}
+            badgesArgent={author.badges_argent}
+            badgesOr={author.badges_or}
+          />
+        )}
+        <span>· {new Date(topic.created_at).toLocaleDateString()}</span>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <VoteArrows
+            targetType="topic"
+            targetId={topic.id}
+            userId={user?.id ?? null}
+            initialCount={topic.votes_count}
+            initialVote={userVoteTopic}
+          />
+          <span className="text-[10px] text-neutral-400">
+            {t("viewsCount", { count: topic.views_count })} · {t("proposalsCount", { count: proposals.length })}
+          </span>
+        </div>
+        <FollowButton topicId={topic.id} userId={user?.id ?? null} initialSubscribed={isSubscribed} />
+      </div>
+
+      <TopicDiscussion
+        topicId={topic.id}
+        topicTitle={topic.title}
+        topicAuthorId={topic.author_id}
+        proposals={proposals}
+        userId={user?.id ?? null}
+        isStaff={isStaff}
+        canReport={canReport}
+      />
+    </main>
+  );
+}
