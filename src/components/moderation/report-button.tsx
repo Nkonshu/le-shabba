@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Flag } from "@phosphor-icons/react";
 import { createClient } from "@/src/utils/supabase/client";
-import { useRouter } from "@/src/i18n/navigation";
+import { useAuthGate } from "@/src/components/auth/auth-modal-provider";
 
 const CONTENT_REASONS = ["hors_sujet", "faux", "doublon", "contenu_protege", "inapproprie", "autre"] as const;
 const PROFILE_REASONS = ["harcelement", "autre"] as const;
@@ -22,7 +22,7 @@ export function ReportButton({
   canReport: boolean;
 }) {
   const t = useTranslations("moderation");
-  const router = useRouter();
+  const authGate = useAuthGate();
   const supabase = createClient();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -55,8 +55,9 @@ export function ReportButton({
   return (
     <>
       <button
-        onClick={() => (userId ? setOpen(true) : router.push("/login"))}
+        onClick={() => authGate(userId) && setOpen(true)}
         aria-label={t("report")}
+        title={t("report")}
         className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-400 hover:text-red-600"
       >
         <Flag size={16} />

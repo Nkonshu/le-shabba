@@ -100,7 +100,7 @@ export async function FavoritesDocuments({
   const { data: docs } = await supabase
     .from("documents")
     .select(
-      "id, title, type, status, subject, year, votes_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)"
+      "id, title, type, status, subject, year, votes_count, views_count, favorites_count, downloads_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)"
     )
     .in("id", favIds)
     .eq("level_id", level)

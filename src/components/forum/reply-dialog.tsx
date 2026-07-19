@@ -24,6 +24,7 @@ export function ReplyDialog({
   onSubmit: (content: string, file: File | null) => Promise<void>;
 }) {
   const t = useTranslations("forum");
+  const tc = useTranslations("common");
   const [content, setContent] = useState(initialContent);
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -56,7 +57,8 @@ export function ReplyDialog({
           <h2 className="font-black">{title}</h2>
           <button
             onClick={onClose}
-            aria-label="close"
+            aria-label={tc("close")}
+            title={tc("close")}
             className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400"
           >
             <X size={20} />
@@ -69,7 +71,7 @@ export function ReplyDialog({
               @{citedAuthorName} {citedExcerpt ? `— ${citedExcerpt}` : ""}
             </span>
             {onCancelCitation && (
-              <button onClick={onCancelCitation} aria-label="cancel citation">
+              <button onClick={onCancelCitation} aria-label={tc("cancel")} title={tc("cancel")}>
                 <X size={14} />
               </button>
             )}

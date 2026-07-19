@@ -7,10 +7,10 @@ import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
 import { MyProgressCard } from "@/src/components/reputation/my-progress-card";
 
 const DOC_SELECT =
-  "id, title, type, status, subject, year, votes_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)";
+  "id, title, type, status, subject, year, votes_count, views_count, favorites_count, downloads_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)";
 
 const TOPIC_SELECT =
-  "id, title, content, subject, status, votes_count, views_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)";
+  "id, title, content, subject, status, votes_count, views_count, favorites_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)";
 
 function enrichTopics(rows: unknown[], solvedSet: Set<string>): TopicCardData[] {
   return (rows as Record<string, unknown>[]).map((row) => {
@@ -126,7 +126,7 @@ export default async function HomePage() {
         </Section>
       </div>
 
-      <aside className="flex flex-col gap-4 lg:w-72 lg:shrink-0">
+      <aside className="flex flex-col gap-4 lg:w-72 lg:shrink-0 lg:border-l lg:border-neutral-100 lg:pl-6 dark:lg:border-neutral-900">
         {profile && <MyProgressCard profile={profile} />}
         <ActivitySidebar
           questionsToday={questionsToday ?? 0}

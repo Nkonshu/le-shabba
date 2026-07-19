@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Star } from "@phosphor-icons/react";
-import { useRouter } from "@/src/i18n/navigation";
+import { useTranslations } from "next-intl";
+import { BookmarkSimple } from "@phosphor-icons/react";
+import { useAuthGate } from "@/src/components/auth/auth-modal-provider";
 import { toggleFavorite, type VoteTargetType } from "@/src/lib/interactions";
 
 export function FavoriteStar({
@@ -16,21 +17,19 @@ export function FavoriteStar({
   userId: string | null;
   initialFavorited: boolean;
 }) {
-  const router = useRouter();
+  const t = useTranslations("interactions");
+  const authGate = useAuthGate();
   const [favorited, setFavorited] = useState(initialFavorited);
   const [pending, setPending] = useState(false);
 
   async function handleClick() {
-    if (!userId) {
-      router.push("/login");
-      return;
-    }
+    if (!authGate(userId)) return;
     if (pending) return;
     setPending(true);
     const previous = favorited;
     setFavorited(!previous);
     try {
-      await toggleFavorite(targetType, targetId, userId);
+      await toggleFavorite(targetType, targetId, userId as string);
     } catch {
       setFavorited(previous);
     } finally {
@@ -38,14 +37,17 @@ export function FavoriteStar({
     }
   }
 
+  const label = favorited ? t("unfavorite") : t("favorite");
+
   return (
     <button
       onClick={handleClick}
-      aria-label="favorite"
+      aria-label={label}
+      title={label}
       aria-pressed={favorited}
       className="flex min-h-11 min-w-11 items-center justify-center rounded-lg"
     >
-      <Star
+      <BookmarkSimple
         size={18}
         weight={favorited ? "fill" : "regular"}
         className={favorited ? "text-yellow-500" : "text-neutral-400"}

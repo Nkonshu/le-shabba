@@ -23,10 +23,10 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   return data as Profile | null;
 });
 
-export async function requireUser(locale: string) {
+export async function requireUser(locale: string, next?: string) {
   const user = await getCurrentUser();
   if (!user) {
-    redirect(`/${locale}/login`);
+    redirect(next ? `/${locale}/login?next=${encodeURIComponent(next)}` : `/${locale}/login`);
   }
   return user;
 }

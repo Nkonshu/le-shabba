@@ -10,6 +10,9 @@ import { ReportButton } from "@/src/components/moderation/report-button";
 import { ShareButton } from "@/src/components/share/share-button";
 import { RankBadge } from "@/src/components/reputation/rank-badge";
 import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
+import { getHotNetworkItems } from "@/src/lib/hot-network";
+import { StatsPanel } from "@/src/components/interactions/stats-panel";
+import { AttachmentLink } from "@/src/components/interactions/attachment-link";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 import type { Metadata } from "next";
 
@@ -43,6 +46,7 @@ export default async function TopicPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("forum");
+  const ti = await getTranslations("interactions");
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
   const isStaff = Boolean(profile && ["admin", "super_admin"].includes(profile.role));
@@ -52,7 +56,7 @@ export default async function TopicPage({
   const { data: topic } = await supabase
     .from("forum_topics")
     .select(
-      "id, title, content, subject, status, canonical_topic_id, votes_count, views_count, created_at, tags, author_id, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
+      "id, title, content, subject, status, canonical_topic_id, votes_count, views_count, favorites_count, attachment_url, created_at, tags, author_id, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -61,10 +65,18 @@ export default async function TopicPage({
     notFound();
   }
 
+  const { data: lastVersion } = await supabase
+    .from("topic_versions")
+    .select("created_at")
+    .eq("topic_id", id)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   const { data: answers } = await supabase
     .from("forum_answers")
     .select(
-      "id, topic_id, parent_id, author_id, type, content, attachment_url, is_solution, is_flagged, votes_count, cited_answer_id, last_moderated_by, created_at, author:profiles!forum_answers_author_id_fkey(id, full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
+      "id, topic_id, parent_id, author_id, type, content, attachment_url, is_solution, is_flagged, votes_count, favorites_count, cited_answer_id, last_moderated_by, created_at, author:profiles!forum_answers_author_id_fkey(id, full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
     )
     .eq("topic_id", id)
     .order("created_at", { ascending: true });
@@ -121,10 +133,11 @@ export default async function TopicPage({
   const isSolved = proposals.some((p) => p.is_solution);
 
   const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }] = await Promise.all([
+  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }, hotItems] = await Promise.all([
     supabase.from("forum_topics").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
     supabase.from("forum_answers").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
     supabase.from("votes").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    getHotNetworkItems(),
   ]);
 
   return (
@@ -133,7 +146,6 @@ export default async function TopicPage({
       <div className="flex items-start justify-between gap-2">
         <h1 className="text-xl font-black">{topic.title}</h1>
         <div className="flex items-center gap-1">
-          <FavoriteStar targetType="topic" targetId={topic.id} userId={user?.id ?? null} initialFavorited={isFavoritedTopic} />
           <ReportButton targetType="topic" targetId={topic.id} userId={user?.id ?? null} canReport={canReport} />
           <ShareButton
             contentType="topic"
@@ -147,7 +159,7 @@ export default async function TopicPage({
       </div>
 
       <div className="flex gap-3">
-        <div className="flex shrink-0 flex-col items-center gap-2">
+        <div className="flex shrink-0 flex-col items-center gap-1">
           <VoteArrows
             targetType="topic"
             targetId={topic.id}
@@ -155,7 +167,7 @@ export default async function TopicPage({
             initialCount={topic.votes_count}
             initialVote={userVoteTopic}
           />
-          <span className="text-center text-[10px] text-neutral-400">{t("viewsCount", { count: topic.views_count })}</span>
+          <FavoriteStar targetType="topic" targetId={topic.id} userId={user?.id ?? null} initialFavorited={isFavoritedTopic} />
         </div>
 
         <div className="flex flex-1 flex-col gap-3">
@@ -179,6 +191,8 @@ export default async function TopicPage({
           </div>
 
           <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
+
+          {topic.attachment_url && <AttachmentLink url={topic.attachment_url as string} />}
 
           <div className="flex justify-end">
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-100 px-2 py-1.5 text-[10px] text-neutral-400 dark:border-neutral-900">
@@ -213,11 +227,20 @@ export default async function TopicPage({
       />
     </main>
 
-    <aside className="lg:w-72 lg:shrink-0">
+    <aside className="flex flex-col gap-4 lg:w-72 lg:shrink-0 lg:border-l lg:border-neutral-100 lg:pl-6 dark:lg:border-neutral-900">
+      <StatsPanel
+        rows={[
+          { label: ti("statAsked"), value: new Date(topic.created_at).toLocaleDateString() },
+          ...(lastVersion ? [{ label: ti("statModified"), value: new Date(lastVersion.created_at).toLocaleDateString() }] : []),
+          { label: ti("statViews"), value: String(topic.views_count) },
+          { label: ti("statFavorites"), value: String(topic.favorites_count) },
+        ]}
+      />
       <ActivitySidebar
         questionsToday={questionsToday ?? 0}
         answersToday={answersToday ?? 0}
         votesToday={votesToday ?? 0}
+        hotItems={hotItems}
       />
     </aside>
     </div>

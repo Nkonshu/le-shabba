@@ -89,6 +89,7 @@ export function ShareButton({
       <button
         onClick={handleShare}
         aria-label={t("share")}
+        title={t("share")}
         className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50"
       >
         <ShareNetwork size={18} />

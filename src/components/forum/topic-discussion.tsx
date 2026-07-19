@@ -5,8 +5,10 @@ import { useTranslations } from "next-intl";
 import { ChatCircle } from "@phosphor-icons/react";
 import { createClient } from "@/src/utils/supabase/client";
 import { useRouter } from "@/src/i18n/navigation";
+import { useAuthGate } from "@/src/components/auth/auth-modal-provider";
 import { toast } from "sonner";
 import { AnswerCard, type AnswerData } from "@/src/components/forum/answer-card";
+import { CommentRow } from "@/src/components/forum/comment-row";
 import { ReplyDialog } from "@/src/components/forum/reply-dialog";
 import { queueOfflineAnswer } from "@/src/lib/offline";
 import { isRateLimited } from "@/src/lib/rate-limit";
@@ -43,6 +45,7 @@ export function TopicDiscussion({
 }) {
   const t = useTranslations("forum");
   const router = useRouter();
+  const authGate = useAuthGate();
   const supabase = useMemo(() => createClient(), []);
   const [dialog, setDialog] = useState<DialogState | null>(null);
 
@@ -66,10 +69,7 @@ export function TopicDiscussion({
   }
 
   function openDialog(state: DialogState) {
-    if (!userId) {
-      router.push("/login");
-      return;
-    }
+    if (!authGate(userId)) return;
     setDialog(state);
   }
 
@@ -184,11 +184,11 @@ export function TopicDiscussion({
             />
 
             {proposal.comments.length > 0 && (
-              <div className="ml-6 flex flex-col gap-2 border-l border-neutral-100 pl-4 dark:border-neutral-900">
+              <div className="ml-6 flex flex-col dark:border-neutral-900">
                 {proposal.comments.map((comment) => (
                   <div key={comment.id} id={`answer-${comment.id}`}>
-                    <AnswerCard
-                      answer={comment}
+                    <CommentRow
+                      comment={comment}
                       citedAuthorName={
                         comment.cited_answer_id
                           ? (proposal.comments.find((c) => c.id === comment.cited_answer_id)?.author?.full_name ?? null)
@@ -196,10 +196,7 @@ export function TopicDiscussion({
                       }
                       userId={userId}
                       canManage={canManage(comment)}
-                      canMarkSolution={false}
-                      isTopicAuthorProposal={false}
                       canReport={canReport}
-              topicTitle={topicTitle}
                       onReply={() =>
                         openDialog({
                           type: "comment",

@@ -45,6 +45,7 @@ export function OfflineDownloadsList() {
               <button
                 onClick={() => setReading(doc)}
                 aria-label={t("read")}
+                title={t("read")}
                 className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-accent-blue"
               >
                 <BookOpen size={18} />
@@ -52,6 +53,7 @@ export function OfflineDownloadsList() {
               <button
                 onClick={() => handleRemove(doc.id)}
                 aria-label={t("removeDownload")}
+                title={t("removeDownload")}
                 className="flex min-h-11 min-w-11 items-center justify-center rounded-lg text-neutral-400 hover:text-red-600"
               >
                 <Trash size={18} />

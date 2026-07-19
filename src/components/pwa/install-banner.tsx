@@ -16,6 +16,7 @@ type BeforeInstallPromptEvent = Event & {
 
 export function InstallBanner() {
   const t = useTranslations("pwa");
+  const tc = useTranslations("common");
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [visible, setVisible] = useState(false);
@@ -82,7 +83,7 @@ export function InstallBanner() {
           </button>
         )}
       </div>
-      <button onClick={dismiss} aria-label="close" className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400">
+      <button onClick={dismiss} aria-label={tc("close")} title={tc("close")} className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400">
         <X size={16} />
       </button>
     </div>

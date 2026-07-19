@@ -9,6 +9,7 @@ import { FollowButton } from "@/src/components/forum/follow-button";
 import { TopicDiscussion } from "@/src/components/forum/topic-discussion";
 import { ReportButton } from "@/src/components/moderation/report-button";
 import { RankBadge } from "@/src/components/reputation/rank-badge";
+import { AttachmentLink } from "@/src/components/interactions/attachment-link";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 
 export default async function SchoolTopicPage({
@@ -19,6 +20,7 @@ export default async function SchoolTopicPage({
   const { locale, subdomain, id } = await params;
   const user = await requireUser(locale);
   const t = await getTranslations("forum");
+  const ti = await getTranslations("interactions");
   const tSchools = await getTranslations("schools");
 
   const school = await getSchoolBySubdomain(subdomain);
@@ -41,7 +43,7 @@ export default async function SchoolTopicPage({
   const { data: topic } = await supabase
     .from("forum_topics")
     .select(
-      "id, title, content, subject, status, canonical_topic_id, votes_count, views_count, created_at, tags, author_id, school_id, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
+      "id, title, content, subject, status, canonical_topic_id, votes_count, views_count, favorites_count, attachment_url, created_at, tags, author_id, school_id, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
     )
     .eq("id", id)
     .eq("school_id", school.id)
@@ -54,7 +56,7 @@ export default async function SchoolTopicPage({
   const { data: answers } = await supabase
     .from("forum_answers")
     .select(
-      "id, topic_id, parent_id, author_id, type, content, attachment_url, is_solution, is_flagged, votes_count, cited_answer_id, last_moderated_by, created_at, author:profiles!forum_answers_author_id_fkey(id, full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
+      "id, topic_id, parent_id, author_id, type, content, attachment_url, is_solution, is_flagged, votes_count, favorites_count, cited_answer_id, last_moderated_by, created_at, author:profiles!forum_answers_author_id_fkey(id, full_name, avatar_url, genie_points, badges_bronze, badges_argent, badges_or)"
     )
     .eq("topic_id", id)
     .order("created_at", { ascending: true });
@@ -107,13 +109,12 @@ export default async function SchoolTopicPage({
       <div className="flex items-start justify-between gap-2">
         <h1 className="text-xl font-black">{topic.title}</h1>
         <div className="flex items-center gap-1">
-          <FavoriteStar targetType="topic" targetId={topic.id} userId={user.id} initialFavorited={isFavoritedTopic} />
           <ReportButton targetType="topic" targetId={topic.id} userId={user.id} canReport={canReport} />
         </div>
       </div>
 
       <div className="flex gap-3">
-        <div className="flex shrink-0 flex-col items-center gap-2">
+        <div className="flex shrink-0 flex-col items-center gap-1">
           <VoteArrows
             targetType="topic"
             targetId={topic.id}
@@ -121,7 +122,7 @@ export default async function SchoolTopicPage({
             initialCount={topic.votes_count}
             initialVote={userVoteTopic}
           />
-          <span className="text-center text-[10px] text-neutral-400">{t("viewsCount", { count: topic.views_count })}</span>
+          <FavoriteStar targetType="topic" targetId={topic.id} userId={user.id} initialFavorited={isFavoritedTopic} />
         </div>
 
         <div className="flex flex-1 flex-col gap-3">
@@ -141,7 +142,12 @@ export default async function SchoolTopicPage({
 
           <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
 
-          <div className="flex justify-end">
+          {topic.attachment_url && <AttachmentLink url={topic.attachment_url as string} />}
+
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <span className="text-[10px] text-neutral-400">
+              {ti("viewsCount", { count: topic.views_count })} · {ti("favoritesCount", { count: topic.favorites_count })}
+            </span>
             <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-100 px-2 py-1.5 text-[10px] text-neutral-400 dark:border-neutral-900">
               <span className="font-medium text-neutral-500">{author?.full_name ?? t("anonymous")}</span>
               {author && (

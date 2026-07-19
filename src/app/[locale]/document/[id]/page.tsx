@@ -10,6 +10,9 @@ import { FavoriteStar } from "@/src/components/interactions/favorite-star";
 import { StaffVerifyButton } from "@/src/components/library/staff-verify-button";
 import { ReportButton } from "@/src/components/moderation/report-button";
 import { ShareButton } from "@/src/components/share/share-button";
+import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
+import { getHotNetworkItems } from "@/src/lib/hot-network";
+import { StatsPanel } from "@/src/components/interactions/stats-panel";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -42,6 +45,7 @@ export default async function DocumentPage({
 }) {
   const { id } = await params;
   const t = await getTranslations("library");
+  const ti = await getTranslations("interactions");
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
   const isStaff = Boolean(profile && ["admin", "super_admin"].includes(profile.role));
@@ -51,7 +55,7 @@ export default async function DocumentPage({
   const { data: doc } = await supabase
     .from("documents")
     .select(
-      "id, title, type, status, subject, year, votes_count, created_at, author_id, file_url, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)"
+      "id, title, type, status, subject, year, votes_count, views_count, favorites_count, downloads_count, created_at, author_id, file_url, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)"
     )
     .eq("id", id)
     .maybeSingle();
@@ -100,8 +104,17 @@ export default async function DocumentPage({
   const country = doc.country as unknown as { code: string } | null;
   const related = doc.related_document as unknown as { title: string; type: string } | null;
 
+  const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }, hotItems] = await Promise.all([
+    supabase.from("forum_topics").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    supabase.from("forum_answers").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    supabase.from("votes").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    getHotNetworkItems(),
+  ]);
+
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-10">
+    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-start">
+    <main className="flex flex-1 flex-col gap-4">
       {doc.status === "flagged" && isAuthor && (
         <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700 dark:bg-red-950 dark:text-red-300">
           {t("underReview")}
@@ -111,12 +124,6 @@ export default async function DocumentPage({
       <div className="flex items-start justify-between gap-2">
         <h1 className="text-xl font-black">{doc.title}</h1>
         <div className="flex items-center gap-1">
-          <FavoriteStar
-            targetType="document"
-            targetId={doc.id}
-            userId={user?.id ?? null}
-            initialFavorited={isFavorited}
-          />
           <ReportButton targetType="document" targetId={doc.id} userId={user?.id ?? null} canReport={canReport} />
           <ShareButton
             contentType="document"
@@ -148,32 +155,61 @@ export default async function DocumentPage({
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <VoteArrows
-          targetType="document"
-          targetId={doc.id}
-          userId={user?.id ?? null}
-          initialCount={doc.votes_count}
-          initialVote={userVote}
-        />
-        <span className="text-[10px] text-neutral-400">{new Date(doc.created_at).toLocaleDateString()}</span>
+      <div className="flex gap-3">
+        <div className="flex shrink-0 flex-col items-center gap-1">
+          <VoteArrows
+            targetType="document"
+            targetId={doc.id}
+            userId={user?.id ?? null}
+            initialCount={doc.votes_count}
+            initialVote={userVote}
+          />
+          <FavoriteStar
+            targetType="document"
+            targetId={doc.id}
+            userId={user?.id ?? null}
+            initialFavorited={isFavorited}
+          />
+        </div>
+
+        <div className="flex flex-1 flex-col gap-3">
+          <span className="text-[10px] text-neutral-400">{new Date(doc.created_at).toLocaleDateString()}</span>
+
+          {doc.related_document_id && related && (
+            <Link href={`/document/${doc.related_document_id}`} className="w-fit text-sm text-accent-blue">
+              {related.type === "Corrigé" ? t("seeCorrection") : t("seeExam")}
+            </Link>
+          )}
+
+          {isStaff && doc.status !== "staff_verified" && <StaffVerifyButton documentId={doc.id} />}
+
+          <DocumentReaderLauncher
+            documentId={doc.id}
+            title={doc.title}
+            subject={doc.subject}
+            fileUrl={doc.file_url}
+            initialPage={initialPage}
+          />
+        </div>
       </div>
-
-      {doc.related_document_id && related && (
-        <Link href={`/document/${doc.related_document_id}`} className="w-fit text-sm text-accent-blue">
-          {related.type === "Corrigé" ? t("seeCorrection") : t("seeExam")}
-        </Link>
-      )}
-
-      {isStaff && doc.status !== "staff_verified" && <StaffVerifyButton documentId={doc.id} />}
-
-      <DocumentReaderLauncher
-        documentId={doc.id}
-        title={doc.title}
-        subject={doc.subject}
-        fileUrl={doc.file_url}
-        initialPage={initialPage}
-      />
     </main>
+
+    <aside className="flex flex-col gap-4 lg:w-72 lg:shrink-0 lg:border-l lg:border-neutral-100 lg:pl-6 dark:lg:border-neutral-900">
+      <StatsPanel
+        rows={[
+          { label: ti("statPublished"), value: new Date(doc.created_at).toLocaleDateString() },
+          { label: ti("statViews"), value: String(doc.views_count) },
+          { label: ti("statFavorites"), value: String(doc.favorites_count) },
+          { label: ti("statDownloads"), value: String(doc.downloads_count) },
+        ]}
+      />
+      <ActivitySidebar
+        questionsToday={questionsToday ?? 0}
+        answersToday={answersToday ?? 0}
+        votesToday={votesToday ?? 0}
+        hotItems={hotItems}
+      />
+    </aside>
+    </div>
   );
 }

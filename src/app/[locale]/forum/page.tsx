@@ -1,9 +1,10 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentUser } from "@/src/lib/dal";
-import { Link } from "@/src/i18n/navigation";
+import { AuthGatedLink } from "@/src/components/auth/auth-gated-link";
 import { TopicCard, type TopicCardData } from "@/src/components/forum/topic-card";
 import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
+import { getHotNetworkItems } from "@/src/lib/hot-network";
 
 export default async function ForumPage() {
   const t = await getTranslations("forum");
@@ -11,18 +12,19 @@ export default async function ForumPage() {
   const user = await getCurrentUser();
 
   const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }, { count: totalQuestions }] =
+  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }, { count: totalQuestions }, hotItems] =
     await Promise.all([
       supabase.from("forum_topics").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
       supabase.from("forum_answers").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
       supabase.from("votes").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
       supabase.from("forum_topics").select("id", { count: "exact", head: true }),
+      getHotNetworkItems(),
     ]);
 
   const { data: topics } = await supabase
     .from("forum_topics")
     .select(
-      "id, title, content, subject, status, votes_count, views_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)"
+      "id, title, content, subject, status, votes_count, views_count, favorites_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)"
     )
     .order("created_at", { ascending: false })
     .limit(30);
@@ -62,14 +64,13 @@ export default async function ForumPage() {
             <h1 className="text-2xl font-black">{t("title")}</h1>
             <p className="mt-1 text-sm text-neutral-500">{t("questionsCount", { count: totalQuestions ?? 0 })}</p>
           </div>
-          {user && (
-            <Link
-              href="/forum/nouvelle-question"
-              className="min-h-11 rounded-xl bg-accent-blue px-4 text-sm font-medium leading-[2.75rem] text-white"
-            >
-              {t("askQuestion")}
-            </Link>
-          )}
+          <AuthGatedLink
+            href="/forum/nouvelle-question"
+            userId={user?.id ?? null}
+            className="min-h-11 shrink-0 rounded-xl bg-accent-blue px-4 text-sm font-medium leading-[2.75rem] text-white"
+          >
+            {t("askQuestion")}
+          </AuthGatedLink>
         </div>
 
         {(topics ?? []).length === 0 ? (
@@ -100,11 +101,12 @@ export default async function ForumPage() {
         )}
       </main>
 
-      <aside className="lg:w-72 lg:shrink-0">
+      <aside className="lg:w-72 lg:shrink-0 lg:border-l lg:border-neutral-100 lg:pl-6 dark:lg:border-neutral-900">
         <ActivitySidebar
           questionsToday={questionsToday ?? 0}
           answersToday={answersToday ?? 0}
           votesToday={votesToday ?? 0}
+          hotItems={hotItems}
         />
       </aside>
     </div>

@@ -8,6 +8,7 @@ import { SiteHeader } from "@/src/components/layout/site-header";
 import { SidebarNav } from "@/src/components/layout/sidebar-nav";
 import { SiteFooter } from "@/src/components/layout/site-footer";
 import { BugReportButton } from "@/src/components/bug-report/bug-report-button";
+import { AuthModalProvider } from "@/src/components/auth/auth-modal-provider";
 import { ServiceWorkerRegister } from "@/src/components/pwa/service-worker-register";
 import { InstallBanner } from "@/src/components/pwa/install-banner";
 import { OfflineIndicator } from "@/src/components/pwa/offline-indicator";
@@ -49,20 +50,22 @@ export default async function LocaleLayout({
     <html lang={locale}>
       <body className="flex min-h-dvh flex-col">
         <NextIntlClientProvider locale={locale}>
-          <ServiceWorkerRegister />
-          <SyncQueueManager />
-          <OfflineIndicator />
-          <SiteHeader />
-          <div className="flex flex-1 flex-col md:flex-row">
-            <SidebarNav showFavorites={Boolean(profile)} />
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="flex-1">{maintenanceMode && !isStaff ? <MaintenanceNotice /> : children}</div>
-              <SiteFooter />
+          <AuthModalProvider>
+            <ServiceWorkerRegister />
+            <SyncQueueManager />
+            <OfflineIndicator />
+            <SiteHeader />
+            <div className="flex flex-1 flex-col md:flex-row">
+              <SidebarNav showFavorites={Boolean(profile)} />
+              <div className="flex min-h-0 flex-1 flex-col">
+                <div className="flex-1">{maintenanceMode && !isStaff ? <MaintenanceNotice /> : children}</div>
+                <SiteFooter />
+              </div>
             </div>
-          </div>
-          {bugReportsEnabled && !(maintenanceMode && !isStaff) && <BugReportButton />}
-          {!(maintenanceMode && !isStaff) && <InstallBanner />}
-          <Toaster />
+            {bugReportsEnabled && !(maintenanceMode && !isStaff) && <BugReportButton />}
+            {!(maintenanceMode && !isStaff) && <InstallBanner />}
+            <Toaster />
+          </AuthModalProvider>
         </NextIntlClientProvider>
       </body>
     </html>

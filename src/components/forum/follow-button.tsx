@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Bell, BellSlash } from "@phosphor-icons/react";
-import { useRouter } from "@/src/i18n/navigation";
+import { useAuthGate } from "@/src/components/auth/auth-modal-provider";
 import { createClient } from "@/src/utils/supabase/client";
 
 export function FollowButton({
@@ -16,25 +16,22 @@ export function FollowButton({
   initialSubscribed: boolean;
 }) {
   const t = useTranslations("forum");
-  const router = useRouter();
+  const authGate = useAuthGate();
   const supabase = createClient();
   const [subscribed, setSubscribed] = useState(initialSubscribed);
   const [pending, setPending] = useState(false);
 
   async function toggle() {
-    if (!userId) {
-      router.push("/login");
-      return;
-    }
+    if (!authGate(userId)) return;
     if (pending) return;
     setPending(true);
     const previous = subscribed;
     setSubscribed(!previous);
 
     if (previous) {
-      await supabase.from("topic_subscriptions").delete().eq("user_id", userId).eq("topic_id", topicId);
+      await supabase.from("topic_subscriptions").delete().eq("user_id", userId as string).eq("topic_id", topicId);
     } else {
-      await supabase.from("topic_subscriptions").insert({ user_id: userId, topic_id: topicId });
+      await supabase.from("topic_subscriptions").insert({ user_id: userId as string, topic_id: topicId });
     }
     setPending(false);
   }

@@ -77,6 +77,7 @@ export function NotificationBell({
       <button
         onClick={() => setOpen((o) => !o)}
         aria-label={t("title")}
+        title={t("title")}
         className="relative flex min-h-11 min-w-11 items-center justify-center rounded-xl text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-50"
       >
         <Bell size={20} />

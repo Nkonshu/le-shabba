@@ -72,6 +72,7 @@ export function DocumentReader({
     try {
       await downloadDocumentForOffline({ id: documentId, title, subject, fileUrl });
       setOfflineAvailable(true);
+      supabase.rpc("increment_document_downloads", { doc_id: documentId });
       toast.success(t("downloadedForOffline"));
     } catch {
       toast.error(t("downloadError"));
@@ -224,6 +225,7 @@ export function DocumentReader({
             <button
               onClick={handleDownloadOffline}
               disabled={offlineAvailable || downloading}
+              title={offlineAvailable ? t("offlineAvailable") : t("downloadOffline")}
               className={`flex min-h-11 min-w-11 items-center justify-center rounded-xl hover:text-neutral-900 disabled:opacity-70 dark:hover:text-neutral-50 ${offlineAvailable ? "text-green-600 dark:text-green-400" : "text-neutral-500"}`}
               aria-label={offlineAvailable ? t("offlineAvailable") : t("downloadOffline")}
             >

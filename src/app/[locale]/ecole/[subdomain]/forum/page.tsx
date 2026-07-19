@@ -31,7 +31,7 @@ export default async function SchoolForumPage({
   const { data: topics } = await supabase
     .from("forum_topics")
     .select(
-      "id, title, content, subject, status, votes_count, views_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)"
+      "id, title, content, subject, status, votes_count, views_count, favorites_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)"
     )
     .eq("school_id", school.id)
     .order("created_at", { ascending: false })

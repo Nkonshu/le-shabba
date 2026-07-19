@@ -4,12 +4,13 @@ import { getCurrentUser } from "@/src/lib/dal";
 import { searchDocuments, searchTopics } from "@/src/lib/search";
 import { DocumentCard, type DocumentCardData } from "@/src/components/library/document-card";
 import { TopicCard, type TopicCardData } from "@/src/components/forum/topic-card";
+import { ContentWithSidebar } from "@/src/components/layout/content-with-sidebar";
 
 const DOC_SELECT =
-  "id, title, type, status, subject, year, votes_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)";
+  "id, title, type, status, subject, year, votes_count, views_count, favorites_count, downloads_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)";
 
 const TOPIC_SELECT =
-  "id, title, content, subject, status, votes_count, views_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)";
+  "id, title, content, subject, status, votes_count, views_count, favorites_count, created_at, tags, level:education_levels(label), author:profiles!forum_topics_author_id_fkey(full_name, avatar_url), forum_answers(count)";
 
 export default async function SearchPage({
   searchParams,
@@ -23,10 +24,10 @@ export default async function SearchPage({
 
   if (!q?.trim()) {
     return (
-      <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-10">
+      <ContentWithSidebar>
         <h1 className="text-2xl font-black">{t("title")}</h1>
         <p className="text-sm text-neutral-500">{t("prompt")}</p>
-      </main>
+      </ContentWithSidebar>
     );
   }
 
@@ -90,7 +91,7 @@ export default async function SearchPage({
   }
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-8 px-4 py-10">
+    <ContentWithSidebar>
       <h1 className="text-2xl font-black">{t("resultsFor", { query: q })}</h1>
 
       <section className="flex flex-col gap-3">
@@ -122,6 +123,6 @@ export default async function SearchPage({
           ))
         )}
       </section>
-    </main>
+    </ContentWithSidebar>
   );
 }

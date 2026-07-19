@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { RequestForm } from "@/src/components/requests/request-form";
+import { useAuthGate } from "@/src/components/auth/auth-modal-provider";
 
 type Level = { id: string; label: string };
 export type RequestRow = {
@@ -28,29 +29,28 @@ export function RequestList({
   levels: Level[];
 }) {
   const t = useTranslations("requests");
+  const authGate = useAuthGate();
   const [showForm, setShowForm] = useState(false);
 
   return (
     <div className="flex flex-col gap-4">
-      {userId && (
-        <div>
-          {showForm ? (
-            <RequestForm
-              requesterId={userId}
-              countryId={countryId}
-              levels={levels}
-              onCreated={() => setShowForm(false)}
-            />
-          ) : (
-            <button
-              onClick={() => setShowForm(true)}
-              className="min-h-11 w-fit rounded-xl bg-accent-blue px-4 text-sm font-medium text-white"
-            >
-              {t("newRequest")}
-            </button>
-          )}
-        </div>
-      )}
+      <div>
+        {showForm && userId ? (
+          <RequestForm
+            requesterId={userId}
+            countryId={countryId}
+            levels={levels}
+            onCreated={() => setShowForm(false)}
+          />
+        ) : (
+          <button
+            onClick={() => authGate(userId) && setShowForm(true)}
+            className="min-h-11 w-fit rounded-xl bg-accent-blue px-4 text-sm font-medium text-white"
+          >
+            {t("newRequest")}
+          </button>
+        )}
+      </div>
 
       {requests.length === 0 ? (
         <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">

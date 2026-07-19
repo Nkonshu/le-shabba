@@ -12,6 +12,7 @@ export type TopicCardData = {
   status: string;
   votes_count: number;
   views_count: number;
+  favorites_count: number;
   created_at: string;
   tags: string[] | null;
   level: { label: string } | null;
@@ -24,6 +25,7 @@ export type TopicCardData = {
 
 export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: string | null }) {
   const t = useTranslations("forum");
+  const ti = useTranslations("interactions");
   const excerpt = topic.content.replace(/<[^>]+>/g, "").trim().slice(0, 140);
 
   return (
@@ -34,13 +36,19 @@ export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: str
           : "border-neutral-200 dark:border-neutral-800"
       }`}
     >
-      <div className="flex shrink-0 flex-col items-center gap-2">
+      <div className="flex shrink-0 flex-col items-center gap-1">
         <VoteArrows
           targetType="topic"
           targetId={topic.id}
           userId={userId}
           initialCount={topic.votes_count}
           initialVote={topic.userVote ?? null}
+        />
+        <FavoriteStar
+          targetType="topic"
+          targetId={topic.id}
+          userId={userId}
+          initialFavorited={topic.isFavorited ?? false}
         />
         <div
           className={`flex items-center gap-1 rounded-lg px-2 py-1 text-xs ${
@@ -53,24 +61,16 @@ export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: str
           <ChatCircle size={14} />
           {topic.answersCount}
         </div>
-        <div className="flex items-center gap-1 text-xs text-neutral-400">
+        <div title={ti("viewsCount", { count: topic.views_count })} className="flex items-center gap-1 text-xs text-neutral-400">
           <Eye size={14} />
           {topic.views_count}
         </div>
       </div>
 
       <div className="flex flex-1 flex-col gap-1.5">
-        <div className="flex items-start justify-between gap-2">
-          <Link href={`/forum/${topic.id}`} className="line-clamp-2 font-medium">
-            {topic.title}
-          </Link>
-          <FavoriteStar
-            targetType="topic"
-            targetId={topic.id}
-            userId={userId}
-            initialFavorited={topic.isFavorited ?? false}
-          />
-        </div>
+        <Link href={`/forum/${topic.id}`} className="line-clamp-2 font-medium">
+          {topic.title}
+        </Link>
 
         {excerpt && <p className="line-clamp-1 text-sm text-neutral-500">{excerpt}</p>}
 

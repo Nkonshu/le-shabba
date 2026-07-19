@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import { CheckCircle, PencilSimple, Trash, ArrowBendUpLeft } from "@phosphor-icons/react";
 import { VoteArrows } from "@/src/components/interactions/vote-arrows";
 import { FavoriteStar } from "@/src/components/interactions/favorite-star";
+import { AttachmentLink } from "@/src/components/interactions/attachment-link";
 import { ReportButton } from "@/src/components/moderation/report-button";
 import { ShareButton } from "@/src/components/share/share-button";
 import { RankBadge } from "@/src/components/reputation/rank-badge";
@@ -17,6 +18,7 @@ export type AnswerData = {
   attachment_url: string | null;
   is_solution: boolean;
   votes_count: number;
+  favorites_count: number;
   cited_answer_id: string | null;
   last_moderated_by: string | null;
   created_at: string;
@@ -63,6 +65,8 @@ export function AnswerCard({
   onMarkSolution?: () => void;
 }) {
   const t = useTranslations("forum");
+  const tc = useTranslations("common");
+  const ti = useTranslations("interactions");
 
   return (
     <div
@@ -72,13 +76,21 @@ export function AnswerCard({
           : "border-neutral-200 dark:border-neutral-800"
       }`}
     >
-      <VoteArrows
-        targetType="answer"
-        targetId={answer.id}
-        userId={userId}
-        initialCount={answer.votes_count}
-        initialVote={answer.userVote ?? null}
-      />
+      <div className="flex shrink-0 flex-col items-center gap-1">
+        <VoteArrows
+          targetType="answer"
+          targetId={answer.id}
+          userId={userId}
+          initialCount={answer.votes_count}
+          initialVote={answer.userVote ?? null}
+        />
+        <FavoriteStar
+          targetType="answer"
+          targetId={answer.id}
+          userId={userId}
+          initialFavorited={answer.isFavorited ?? false}
+        />
+      </div>
 
       <div className="flex flex-1 flex-col gap-2">
         <div className="flex items-center justify-between gap-2">
@@ -100,12 +112,6 @@ export function AnswerCard({
             )}
           </div>
           <div className="flex items-center gap-1">
-            <FavoriteStar
-              targetType="answer"
-              targetId={answer.id}
-              userId={userId}
-              initialFavorited={answer.isFavorited ?? false}
-            />
             <ReportButton targetType="answer" targetId={answer.id} userId={userId} canReport={canReport} />
             {answer.type === "proposal" && (
               <ShareButton
@@ -128,13 +134,15 @@ export function AnswerCard({
 
         <p className="whitespace-pre-wrap text-sm">{answer.content}</p>
 
-        {answer.attachment_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={answer.attachment_url} alt="" className="max-h-40 w-fit rounded-lg object-cover" />
-        )}
+        {answer.attachment_url && <AttachmentLink url={answer.attachment_url} />}
 
-        <div className="flex justify-end">
-          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-100 px-2 py-1.5 text-[10px] text-neutral-400 dark:border-neutral-900">
+        <div className="flex items-center justify-between gap-2">
+          {answer.type === "proposal" && (
+            <span title={ti("favoritesCount", { count: answer.favorites_count })} className="text-[10px] text-neutral-400">
+              {ti("favoritesCount", { count: answer.favorites_count })}
+            </span>
+          )}
+          <div className="ml-auto flex flex-wrap items-center gap-2 rounded-lg border border-neutral-100 px-2 py-1.5 text-[10px] text-neutral-400 dark:border-neutral-900">
             <span className="font-medium text-neutral-500">{answer.author?.full_name ?? t("anonymous")}</span>
             {answer.author && (
               <RankBadge
@@ -169,10 +177,10 @@ export function AnswerCard({
           )}
           {canManage && (
             <>
-              <button onClick={onEdit} aria-label="edit" className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50">
+              <button onClick={onEdit} aria-label={tc("edit")} title={tc("edit")} className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400 hover:text-neutral-900 dark:hover:text-neutral-50">
                 <PencilSimple size={14} />
               </button>
-              <button onClick={onDelete} aria-label="delete" className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400 hover:text-red-600">
+              <button onClick={onDelete} aria-label={tc("delete")} title={tc("delete")} className="flex min-h-11 min-w-11 items-center justify-center text-neutral-400 hover:text-red-600">
                 <Trash size={14} />
               </button>
             </>

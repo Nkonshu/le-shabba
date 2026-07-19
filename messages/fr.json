@@ -47,7 +47,27 @@
   },
   "auth": {
     "loginTitle": "Connexion",
-    "continueWithGoogle": "Continuer avec Google"
+    "loginModalBody": "Connecte-toi pour continuer — tu seras ramené ici juste après.",
+    "continueWithGoogle": "Continuer avec Google",
+    "close": "Fermer"
+  },
+  "interactions": {
+    "upvote": "Voter pour",
+    "downvote": "Voter contre",
+    "favorite": "Ajouter aux favoris",
+    "unfavorite": "Retirer des favoris",
+    "viewHistory": "Historique des modifications",
+    "viewsCount": "{count} vues",
+    "favoritesCount": "{count} mis en favori",
+    "downloadsCount": "{count} téléchargements",
+    "readCount": "{count} lectures",
+    "download": "Télécharger",
+    "statAsked": "Posé le",
+    "statModified": "Modifié le",
+    "statPublished": "Publié le",
+    "statViews": "Vues",
+    "statFavorites": "Mis en favori",
+    "statDownloads": "Téléchargements"
   },
   "onboarding": {
     "step": "Étape {current} sur {total}",
@@ -244,6 +264,7 @@
     "questionsToday": "{count} questions aujourd'hui",
     "answersToday": "{count} réponses aujourd'hui",
     "votesToday": "{count} votes aujourd'hui",
+    "hotNetwork": "Tendances du réseau",
     "myProgress": "Ma progression",
     "streakDays": "{count, plural, one {# jour de suite} other {# jours de suite}}"
   },

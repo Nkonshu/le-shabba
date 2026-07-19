@@ -4,6 +4,7 @@ import { getCurrentProfile } from "@/src/lib/dal";
 import { createClient } from "@/src/utils/supabase/server";
 import { signOut } from "@/src/app/actions/auth";
 import { LanguageSwitcher } from "@/src/components/layout/language-switcher";
+import { HeaderLoginButton } from "@/src/components/auth/header-login-button";
 import { NotificationBell } from "@/src/components/layout/notification-bell";
 import { SearchBar } from "@/src/components/layout/search-bar";
 
@@ -76,12 +77,7 @@ export async function SiteHeader() {
               </form>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="min-h-11 rounded-xl bg-accent-blue px-4 text-sm font-medium leading-[2.75rem] text-white"
-            >
-              {t("login")}
-            </Link>
+            <HeaderLoginButton />
           )}
         </div>
       </div>

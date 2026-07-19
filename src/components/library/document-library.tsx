@@ -4,6 +4,7 @@ import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentProfile, getCurrentUser } from "@/src/lib/dal";
 import { isCurrentlyBanned } from "@/src/lib/profile";
 import { Link } from "@/src/i18n/navigation";
+import { AuthGatedLink } from "@/src/components/auth/auth-gated-link";
 import { SelectionCard } from "@/src/components/library/selection-card";
 import { DocumentCard, type DocumentCardData } from "@/src/components/library/document-card";
 
@@ -26,19 +27,21 @@ export async function DocumentLibrary({
 }) {
   const supabase = await createClient();
   const t = await getTranslations("library");
+  const publishUser = await getCurrentUser();
   const profile = await getCurrentProfile();
-  const canPublish = Boolean(profile && !isCurrentlyBanned(profile));
+  const canPublish = !profile || !isCurrentlyBanned(profile);
 
   const level = searchParams.level;
   const subject = searchParams.subject;
 
   const publishButton = canPublish ? (
-    <Link
+    <AuthGatedLink
       href={`/publier?type=${encodeURIComponent(documentType)}`}
-      className="min-h-11 rounded-xl bg-accent-blue px-4 text-sm font-medium leading-[2.75rem] text-white"
+      userId={publishUser?.id ?? null}
+      className="min-h-11 shrink-0 rounded-xl bg-accent-blue px-4 text-sm font-medium leading-[2.75rem] text-white"
     >
       {t("publish")}
-    </Link>
+    </AuthGatedLink>
   ) : null;
 
   if (!level) {
@@ -119,7 +122,7 @@ export async function DocumentLibrary({
   const { data: docs } = await supabase
     .from("documents")
     .select(
-      "id, title, type, status, subject, year, votes_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)"
+      "id, title, type, status, subject, year, votes_count, views_count, favorites_count, downloads_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)"
     )
     .eq("type", documentType)
     .eq("level_id", level)

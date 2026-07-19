@@ -4,16 +4,18 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { createClient } from "@/src/utils/supabase/client";
 
-export function GoogleLoginButton() {
+export function GoogleLoginButton({ returnTo }: { returnTo?: string | null }) {
   const t = useTranslations("auth");
   const supabase = createClient();
   const [loading, setLoading] = useState(false);
 
   async function continueWithGoogle() {
     setLoading(true);
+    const callbackUrl = new URL("/auth/callback", window.location.origin);
+    if (returnTo) callbackUrl.searchParams.set("next", returnTo);
     await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
+      options: { redirectTo: callbackUrl.toString() },
     });
   }
 
