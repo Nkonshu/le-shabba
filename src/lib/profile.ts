@@ -26,10 +26,15 @@ export type Profile = {
   referral_activated_at: string | null;
   is_premium: boolean;
   premium_until: string | null;
+  deleted_at: string | null;
 };
 
 export function isCurrentlyBanned(profile: Pick<Profile, "is_banned" | "banned_until">) {
   if (!profile.is_banned) return false;
   if (!profile.banned_until) return true;
   return new Date(profile.banned_until) > new Date();
+}
+
+export function isAccountDeleted(profile: Pick<Profile, "deleted_at">) {
+  return profile.deleted_at !== null;
 }

@@ -49,7 +49,8 @@
     "loginTitle": "Log in",
     "loginModalBody": "Log in to continue — you'll be brought right back here.",
     "continueWithGoogle": "Continue with Google",
-    "close": "Close"
+    "close": "Close",
+    "accountDeletedNotice": "This account has been deleted and can't be reactivated. Contact us if you think this is a mistake."
   },
   "interactions": {
     "upvote": "Upvote",
@@ -83,6 +84,7 @@
     "finish": "Let's go!"
   },
   "profile": {
+    "accountDeleted": "This account has been deleted.",
     "anonymous": "User",
     "memberSince": "Member since {date}",
     "streakDays": "{count, plural, one {# day streak} other {# day streak}}",
@@ -103,7 +105,15 @@
     "saveError": "Couldn't save, please try again.",
     "premiumTitle": "Premium offline access",
     "premiumActive": "Active until {date}",
-    "premiumUpgrade": "Upgrade to premium"
+    "premiumUpgrade": "Upgrade to premium",
+    "deleteAccount": "Delete my account",
+    "deleteAccountTitle": "Delete your account?",
+    "deleteAccountExplain": "Your profile (username, avatar, bio) will be anonymized and you'll be signed out. Content you've already published (courses, questions, answers, comments) stays visible so it doesn't break discussions others replied to, but it will no longer be attributed to you.",
+    "deleteAccountConfirmLabel": "To confirm, type DELETE below:",
+    "deleteAccountConfirmWord": "DELETE",
+    "deleteAccountCancel": "Cancel",
+    "deleteAccountConfirm": "Permanently delete",
+    "deleteAccountError": "Couldn't delete the account, try again or contact us."
   },
   "admin": {
     "title": "Administration",

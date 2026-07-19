@@ -50,12 +50,22 @@ export default async function proxy(request: NextRequest) {
     if (!isExempt) {
       const { data: profile } = await supabase
         .from("profiles")
-        .select("id")
+        .select("id, deleted_at")
         .eq("id", user.id)
         .maybeSingle();
 
       if (!profile) {
         const redirectResponse = NextResponse.redirect(new URL(`/${locale}/onboarding`, request.url));
+        response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+        return redirectResponse;
+      }
+
+      // Compte supprimé (delete_own_account) : le profil reste en base (anonymisé, contenu
+      // conservé) mais plus personne ne doit pouvoir se reconnecter dessus — on ferme la session
+      // immédiatement plutôt que de laisser un utilisateur "revenir" sur un compte anonymisé.
+      if (profile.deleted_at) {
+        await supabase.auth.signOut();
+        const redirectResponse = NextResponse.redirect(new URL(`/${locale}/login?deleted=1`, request.url));
         response.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
         return redirectResponse;
       }

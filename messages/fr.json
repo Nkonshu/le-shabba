@@ -49,7 +49,8 @@
     "loginTitle": "Connexion",
     "loginModalBody": "Connecte-toi pour continuer — tu seras ramené ici juste après.",
     "continueWithGoogle": "Continuer avec Google",
-    "close": "Fermer"
+    "close": "Fermer",
+    "accountDeletedNotice": "Ce compte a été supprimé et ne peut pas être réactivé. Contacte-nous si tu penses qu'il s'agit d'une erreur."
   },
   "interactions": {
     "upvote": "Voter pour",
@@ -83,6 +84,7 @@
     "finish": "C'est parti !"
   },
   "profile": {
+    "accountDeleted": "Ce compte a été supprimé.",
     "anonymous": "Utilisateur",
     "memberSince": "Membre depuis {date}",
     "streakDays": "{count, plural, one {# jour de suite} other {# jours de suite}}",
@@ -103,7 +105,15 @@
     "saveError": "Impossible d'enregistrer, réessaie.",
     "premiumTitle": "Accès hors-ligne premium",
     "premiumActive": "Actif jusqu'au {date}",
-    "premiumUpgrade": "Passer premium"
+    "premiumUpgrade": "Passer premium",
+    "deleteAccount": "Supprimer mon compte",
+    "deleteAccountTitle": "Supprimer ton compte ?",
+    "deleteAccountExplain": "Ton profil (pseudo, avatar, bio) sera anonymisé et tu seras déconnecté. Le contenu que tu as déjà publié (cours, questions, réponses, commentaires) reste visible pour ne pas casser les discussions où d'autres ont répondu, mais ne sera plus attribué à toi.",
+    "deleteAccountConfirmLabel": "Pour confirmer, tape SUPPRIMER ci-dessous :",
+    "deleteAccountConfirmWord": "SUPPRIMER",
+    "deleteAccountCancel": "Annuler",
+    "deleteAccountConfirm": "Supprimer définitivement",
+    "deleteAccountError": "Impossible de supprimer le compte, réessaie ou contacte-nous."
   },
   "admin": {
     "title": "Administration",

@@ -26,13 +26,21 @@ export default async function PublicProfilePage({
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, avatar_url, bio, created_at, genie_points, badges_bronze, badges_argent, badges_or, current_streak, longest_streak"
+      "id, full_name, avatar_url, bio, created_at, genie_points, badges_bronze, badges_argent, badges_or, current_streak, longest_streak, deleted_at"
     )
     .eq("id", id)
     .maybeSingle();
 
   if (!profile) {
     notFound();
+  }
+
+  if (profile.deleted_at) {
+    return (
+      <main className="mx-auto flex max-w-sm flex-col gap-2 px-4 py-10 text-center">
+        <p className="text-sm text-neutral-500">{t("accountDeleted")}</p>
+      </main>
+    );
   }
 
   const [{ data: allBadges }, { data: earnedBadges }, { count: docsCount }, { count: topicsCount }, { count: answersCount }] =

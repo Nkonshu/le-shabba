@@ -4,6 +4,7 @@ import { getCurrentProfile, requireUser } from "@/src/lib/dal";
 import { createClient } from "@/src/utils/supabase/server";
 import { Link } from "@/src/i18n/navigation";
 import { ProfileSettingsForm } from "@/src/components/profile/profile-settings-form";
+import { DeleteAccountButton } from "@/src/components/profile/delete-account-button";
 
 export default async function ProfileSettingsPage({
   params,
@@ -43,6 +44,8 @@ export default async function ProfileSettingsPage({
           </Link>
         )}
       </div>
+
+      <DeleteAccountButton />
     </main>
   );
 }
