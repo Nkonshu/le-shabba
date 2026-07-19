@@ -124,7 +124,84 @@ Ton PC → Tailscale (tunnel privé) → VPS (IP 100.x.x.x) → SSH / dashboard 
 | **Coolify** | PaaS qui tourne *sur* le VPS et orchestre tous les conteneurs (Supabase, Meilisearch, et bientôt l'appli Next.js) — déploiements, variables d'environnement, logs, redémarrages | Déployer/mettre à jour un service, changer une variable d'environnement de prod, consulter les logs d'un conteneur, redémarrer un service après une panne | `http://<IP-Tailscale-VPS>:8000` (ou l'IP publique du VPS, même port — voir note sécurité ci-dessous) |
 | **Tailscale** | VPN privé maillé entre ton PC et le VPS (les deux apparaissent comme pairs du même tailnet) — jamais emprunté par le trafic public | SSH vers le VPS, accès direct à Postgres sans passer par `docker exec`, ouvrir le dashboard Coolify sans l'exposer publiquement | Application Tailscale installée sur le PC (déjà active) ; IP du VPS sur le tailnet : `100.64.219.10` |
 
-**Note sécurité (à corriger quand tu auras un moment) :** le port 8000 de Coolify est actuellement
-ouvert sur l'IP publique du VPS en plus de l'IP Tailscale (aucun pare-feu actif, `ufw` est
-`inactive`). Pas urgent, mais idéalement restreindre ce port à l'IP Tailscale uniquement une fois
-que l'accès via Tailscale est devenu une habitude.
+**Sécurité (déjà fait) :** le port 8000 de Coolify est bloqué pour tout le monde sauf pour les
+appareils connectés à Tailscale — une règle de pare-feu (`iptables`, chaîne `DOCKER-USER`) rejette
+tout le trafic public vers ce port, seul le trafic venant de l'interface `tailscale0` passe. Rien à
+faire ici, c'était le tout premier chantier de sécurité de ce projet.
+
+---
+
+## 4. Donner le rôle super_admin à quelqu'un
+
+Il n'existe **volontairement** aucun bouton dans le site pour créer un super_admin (c'est le rôle
+le plus puissant qui existe — pouvoir tout casser si mal utilisé, donc on ne le distribue jamais à
+la légère). Un admin normal (rôle "Admin", pas "Super admin") *peut* être créé directement dans le
+site, par un super_admin, dans `/admin` → onglet "Utilisateurs" → bouton "Promouvoir". Ce qui suit
+ne concerne que le rôle super_admin, le seul qui doit encore passer par une commande.
+
+### Ce qu'il faut savoir avant de commencer
+
+- Il faut que la personne se soit **déjà connectée au moins une fois** sur le site avec son compte
+  Google, et qu'elle ait **terminé l'inscription** (choisi son pseudo, son pays, son niveau). Sans
+  ça, son compte n'existe pas encore dans la base et la commande ne trouvera personne à promouvoir.
+- Il faut connaître soit son **pseudo exact** (celui affiché sur le site), soit son **email Google**
+  (plus fiable, car deux personnes peuvent choisir le même pseudo).
+
+### Étape par étape (comme si tu ne l'avais jamais fait)
+
+**1. Ouvre un terminal sur ton PC** (celui où Tailscale est installé et connecté).
+
+**2. Copie-colle cette commande pour te connecter au serveur** (elle ne fait qu'ouvrir une session,
+elle ne modifie encore rien) :
+```
+ssh ubuntu@91.134.142.241
+```
+Si ça demande un mot de passe ou plante, c'est que Tailscale n'est pas connecté sur ton PC — ouvre
+l'appli Tailscale, vérifie qu'elle affiche "Connected", puis réessaie.
+
+**3. Une fois connecté (l'invite de commande a changé, tu es "dans" le serveur), colle ceci pour
+ouvrir la base de données :**
+```
+sudo docker exec -it supabase-db-tdbqvmsghpps0g4g0hv9goqu psql -U postgres -d postgres
+```
+Le curseur devient `postgres=#` — c'est normal, tu es maintenant "dans" la base de données.
+
+**4. Trouve d'abord l'identifiant (l'id) de la personne**, avec son email Google (remplace
+l'adresse par la vraie) :
+```sql
+select id, full_name, role from profiles p
+join auth.users u on u.id = p.id
+where u.email = 'email-de-la-personne@gmail.com';
+```
+Appuie sur Entrée. Ça affiche une ligne avec un `id` qui ressemble à
+`004d0f37-20bf-43cd-8eba-dbad6bc96423` — copie cet id, c'est lui qu'il faut utiliser à l'étape
+suivante (jamais le nom ou l'email directement dans la commande de promotion).
+
+**5. Colle cette commande pour donner le rôle**, en remplaçant `L_ID_COPIÉ` par l'id copié juste
+avant (garde les guillemets simples autour) :
+```sql
+update profiles set role = 'super_admin' where id = 'L_ID_COPIÉ' returning id, full_name, role;
+```
+Si ça affiche une ligne avec `role | super_admin`, c'est fait. La personne doit se déconnecter puis
+se reconnecter sur le site (ou juste recharger la page) pour voir apparaître les liens
+"Admin"/"Modération".
+
+**6. Pour sortir proprement** (deux fois, d'abord la base puis le serveur) :
+```
+\q
+exit
+```
+
+### Pour vérifier qui est déjà super_admin (sans rien changer)
+
+Juste après l'étape 3 :
+```sql
+select full_name, role from profiles where role in ('admin', 'super_admin');
+```
+
+### Pour retirer le rôle (redescendre quelqu'un en simple élève)
+
+Même commande que l'étape 5, mais avec `'student'` à la place de `'super_admin'` :
+```sql
+update profiles set role = 'student' where id = 'L_ID_COPIÉ' returning id, full_name, role;
+```
