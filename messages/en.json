@@ -17,7 +17,9 @@
     "bannedTemporary": "Your account was suspended until {date} — reason: {reason}",
     "bannedPermanent": "Your account was suspended — contact support",
     "maintenanceTitle": "Site under maintenance",
-    "maintenanceBody": "Le Shabba is under maintenance, we'll be back shortly."
+    "maintenanceBody": "Le Shabba is under maintenance, we'll be back shortly.",
+    "themeToLight": "Switch to light mode",
+    "themeToDark": "Switch to dark mode"
   },
   "nav": {
     "home": "Home",

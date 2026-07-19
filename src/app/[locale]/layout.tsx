@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import Script from "next/script";
 import { Toaster } from "sonner";
 import { routing } from "@/src/i18n/routing";
 import { SiteHeader } from "@/src/components/layout/site-header";
@@ -47,8 +48,11 @@ export default async function LocaleLayout({
   const isStaff = profile ? ["admin", "super_admin"].includes(profile.role) : false;
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className="dark" suppressHydrationWarning>
       <body className="flex min-h-dvh flex-col">
+        <Script id="theme-init" strategy="beforeInteractive">
+          {`(function(){try{if(localStorage.getItem("theme")==="light"){document.documentElement.classList.remove("dark");}}catch(e){}})();`}
+        </Script>
         <NextIntlClientProvider locale={locale}>
           <AuthModalProvider>
             <ServiceWorkerRegister />

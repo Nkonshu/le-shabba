@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Bascule clair/sombre pilotée par une classe .dark sur <html> (voir ThemeToggle), plutôt que par
+   la préférence système seule — nécessaire en Tailwind v4 pour que les classes dark: existantes
+   répondent à un choix explicite de l'utilisateur, pas uniquement à prefers-color-scheme. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-accent-blue: #2563eb;
   --color-accent-orange: #ea580c;
@@ -10,14 +15,8 @@
   color-scheme: light;
 }
 
-:root[data-theme="dark"] {
+:root.dark {
   color-scheme: dark;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    color-scheme: dark;
-  }
 }
 
 body {

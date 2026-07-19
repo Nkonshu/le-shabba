@@ -17,7 +17,9 @@
     "bannedTemporary": "Ton compte a été suspendu jusqu'au {date} — motif : {reason}",
     "bannedPermanent": "Ton compte a été suspendu — contacte le support",
     "maintenanceTitle": "Site en maintenance",
-    "maintenanceBody": "Le Shabba est en cours de maintenance, on revient très vite."
+    "maintenanceBody": "Le Shabba est en cours de maintenance, on revient très vite.",
+    "themeToLight": "Passer en mode clair",
+    "themeToDark": "Passer en mode sombre"
   },
   "nav": {
     "home": "Accueil",
