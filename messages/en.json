@@ -564,5 +564,21 @@
     "revenueTitle": "Confirmed revenue",
     "actionSaved": "Action completed.",
     "actionError": "Couldn't complete this action, please try again."
+  },
+  "adminReferenceData": {
+    "tabReferenceData": "Reference data",
+    "countriesTitle": "Countries",
+    "countryCodePlaceholder": "Code (e.g. CI)",
+    "countryNamePlaceholder": "Country name",
+    "addCountry": "Add a country",
+    "confirmDeleteCountry": "Delete this country? Not possible if it's still in use (levels, profiles, documents...).",
+    "levelsTitle": "Education levels",
+    "levelLabelPlaceholder": "Level name (e.g. Terminale D)",
+    "addLevel": "Add a level",
+    "emptyLevels": "No level for this country.",
+    "confirmDeleteLevel": "Delete this level? Not possible if it's still in use (profiles, documents, topics...).",
+    "saved": "Changes saved.",
+    "saveError": "Couldn't save, please try again.",
+    "deleteBlocked": "Can't delete: still used elsewhere on the platform."
   }
 }

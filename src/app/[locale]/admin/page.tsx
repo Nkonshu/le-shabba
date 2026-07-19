@@ -10,6 +10,7 @@ import { JournalFilters } from "@/src/components/admin/journal-filters";
 import { BugReportsList } from "@/src/components/admin/bug-reports-list";
 import { SchoolRequestsList, type SchoolRequestRow, type SchoolRow } from "@/src/components/admin/school-requests-list";
 import { PaymentsAdminList, type AdminPaymentRow } from "@/src/components/admin/payments-admin-list";
+import { ReferenceDataManager, type CountryRow, type LevelRow } from "@/src/components/admin/reference-data-manager";
 
 type AuditEntry = {
   id: string;
@@ -33,6 +34,7 @@ export default async function AdminPage({
   const t = await getTranslations("admin");
   const tAdminSchools = await getTranslations("adminSchools");
   const tAdminPayments = await getTranslations("adminPayments");
+  const tAdminReferenceData = await getTranslations("adminReferenceData");
 
   const supabase = await createClient();
   const [
@@ -107,6 +109,14 @@ export default async function AdminPage({
         >
           {tAdminPayments("tabPayments")}
         </Link>
+        <Link
+          href="/admin?tab=reference-data"
+          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
+            tab === "reference-data" ? "border-accent-blue" : "border-transparent text-neutral-500"
+          }`}
+        >
+          {tAdminReferenceData("tabReferenceData")}
+        </Link>
       </div>
 
       {tab === "features" && (
@@ -126,7 +136,23 @@ export default async function AdminPage({
       {tab === "anomalies" && <BugReportsList />}
       {tab === "schools" && <SchoolsTab />}
       {tab === "payments" && <PaymentsTab />}
+      {tab === "reference-data" && <ReferenceDataTab />}
     </main>
+  );
+}
+
+async function ReferenceDataTab() {
+  const supabase = await createClient();
+  const [{ data: countries }, { data: levels }] = await Promise.all([
+    supabase.from("countries").select("id, code, name").order("name"),
+    supabase.from("education_levels").select("id, country_id, label, sort_order").order("sort_order"),
+  ]);
+
+  return (
+    <ReferenceDataManager
+      countries={(countries as CountryRow[]) ?? []}
+      levels={(levels as LevelRow[]) ?? []}
+    />
   );
 }
 

@@ -564,5 +564,21 @@
     "revenueTitle": "Revenus confirmés",
     "actionSaved": "Action effectuée.",
     "actionError": "Action impossible, réessaie."
+  },
+  "adminReferenceData": {
+    "tabReferenceData": "Listes de référence",
+    "countriesTitle": "Pays",
+    "countryCodePlaceholder": "Code (ex. CI)",
+    "countryNamePlaceholder": "Nom du pays",
+    "addCountry": "Ajouter un pays",
+    "confirmDeleteCountry": "Supprimer ce pays ? Impossible s'il est encore utilisé (niveaux, profils, documents...).",
+    "levelsTitle": "Niveaux scolaires",
+    "levelLabelPlaceholder": "Nom du niveau (ex. Terminale D)",
+    "addLevel": "Ajouter un niveau",
+    "emptyLevels": "Aucun niveau pour ce pays.",
+    "confirmDeleteLevel": "Supprimer ce niveau ? Impossible s'il est encore utilisé (profils, documents, sujets...).",
+    "saved": "Modifications enregistrées.",
+    "saveError": "Impossible d'enregistrer, réessaie.",
+    "deleteBlocked": "Impossible de supprimer : encore utilisé ailleurs sur la plateforme."
   }
 }
