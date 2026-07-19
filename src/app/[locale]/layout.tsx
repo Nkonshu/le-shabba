@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { Toaster } from "sonner";
 import { routing } from "@/src/i18n/routing";
 import { SiteHeader } from "@/src/components/layout/site-header";
+import { SidebarNav } from "@/src/components/layout/sidebar-nav";
 import { SiteFooter } from "@/src/components/layout/site-footer";
 import { BugReportButton } from "@/src/components/bug-report/bug-report-button";
 import { ServiceWorkerRegister } from "@/src/components/pwa/service-worker-register";
@@ -37,15 +38,12 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const [maintenanceMode, bugReportsEnabled] = await Promise.all([
+  const [maintenanceMode, bugReportsEnabled, profile] = await Promise.all([
     isFeatureEnabled("platform.maintenance_mode"),
     isFeatureEnabled("support.bug_reports"),
+    getCurrentProfile(),
   ]);
-  let isStaff = false;
-  if (maintenanceMode) {
-    const profile = await getCurrentProfile();
-    isStaff = profile ? ["admin", "super_admin"].includes(profile.role) : false;
-  }
+  const isStaff = profile ? ["admin", "super_admin"].includes(profile.role) : false;
 
   return (
     <html lang={locale}>
@@ -54,8 +52,9 @@ export default async function LocaleLayout({
           <ServiceWorkerRegister />
           <SyncQueueManager />
           <OfflineIndicator />
+          <SiteHeader />
           <div className="flex flex-1 flex-col md:flex-row">
-            <SiteHeader />
+            <SidebarNav showFavorites={Boolean(profile)} />
             <div className="flex min-h-0 flex-1 flex-col">
               <div className="flex-1">{maintenanceMode && !isStaff ? <MaintenanceNotice /> : children}</div>
               <SiteFooter />

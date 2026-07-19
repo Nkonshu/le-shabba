@@ -17,14 +17,14 @@ export function SearchBar() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="relative hidden sm:block">
+    <form onSubmit={handleSubmit} className="relative w-full max-w-xl flex-1">
       <MagnifyingGlass size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
       <input
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder={t("search")}
-        className="min-h-11 w-48 rounded-xl border border-neutral-200 bg-white pl-9 pr-3 text-sm dark:border-neutral-800 dark:bg-neutral-900"
+        className="min-h-11 w-full rounded-xl border border-neutral-200 bg-white pl-9 pr-3 text-sm dark:border-neutral-800 dark:bg-neutral-900"
       />
     </form>
   );

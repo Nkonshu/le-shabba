@@ -11,11 +11,13 @@ export default async function ForumPage() {
   const user = await getCurrentUser();
 
   const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }] = await Promise.all([
-    supabase.from("forum_topics").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
-    supabase.from("forum_answers").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
-    supabase.from("votes").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
-  ]);
+  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }, { count: totalQuestions }] =
+    await Promise.all([
+      supabase.from("forum_topics").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+      supabase.from("forum_answers").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+      supabase.from("votes").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+      supabase.from("forum_topics").select("id", { count: "exact", head: true }),
+    ]);
 
   const { data: topics } = await supabase
     .from("forum_topics")
@@ -56,7 +58,10 @@ export default async function ForumPage() {
     <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-start">
       <main className="flex flex-1 flex-col gap-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-black">{t("title")}</h1>
+          <div>
+            <h1 className="text-2xl font-black">{t("title")}</h1>
+            <p className="mt-1 text-sm text-neutral-500">{t("questionsCount", { count: totalQuestions ?? 0 })}</p>
+          </div>
           {user && (
             <Link
               href="/forum/nouvelle-question"

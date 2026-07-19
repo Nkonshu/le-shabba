@@ -9,7 +9,7 @@ export async function MyProgressCard({ profile }: { profile: Profile }) {
   const t = await getTranslations("home");
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+    <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-neutral-50 p-4 dark:border-neutral-800 dark:bg-neutral-900/60">
       <h2 className="font-black">{t("myProgress")}</h2>
       <RankBadge
         points={profile.genie_points}

@@ -27,7 +27,13 @@ export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: str
   const excerpt = topic.content.replace(/<[^>]+>/g, "").trim().slice(0, 140);
 
   return (
-    <div className="flex gap-3 rounded-xl border border-neutral-200 p-4 dark:border-neutral-800">
+    <div
+      className={`flex gap-3 rounded-xl border p-4 ${
+        topic.hasSolution
+          ? "border-green-300 bg-green-50/50 dark:border-green-800 dark:bg-green-950/30"
+          : "border-neutral-200 dark:border-neutral-800"
+      }`}
+    >
       <div className="flex shrink-0 flex-col items-center gap-2">
         <VoteArrows
           targetType="topic"
@@ -90,7 +96,7 @@ export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: str
             ))}
           </div>
 
-          <div className="flex shrink-0 items-center gap-2 text-[10px] text-neutral-400">
+          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-neutral-100 px-2 py-1 text-[10px] text-neutral-400 dark:border-neutral-900">
             {topic.author?.avatar_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={topic.author.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />

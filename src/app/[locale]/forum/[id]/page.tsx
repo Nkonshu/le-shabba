@@ -180,17 +180,19 @@ export default async function TopicPage({
 
           <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
 
-          <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-400">
-            <span className="font-medium text-neutral-500">{author?.full_name ?? t("anonymous")}</span>
-            {author && (
-              <RankBadge
-                points={author.genie_points}
-                badgesBronze={author.badges_bronze}
-                badgesArgent={author.badges_argent}
-                badgesOr={author.badges_or}
-              />
-            )}
-            <span>· {new Date(topic.created_at).toLocaleDateString()}</span>
+          <div className="flex justify-end">
+            <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-100 px-2 py-1.5 text-[10px] text-neutral-400 dark:border-neutral-900">
+              <span className="font-medium text-neutral-500">{author?.full_name ?? t("anonymous")}</span>
+              {author && (
+                <RankBadge
+                  points={author.genie_points}
+                  badgesBronze={author.badges_bronze}
+                  badgesArgent={author.badges_argent}
+                  badgesOr={author.badges_or}
+                />
+              )}
+              <span>· {new Date(topic.created_at).toLocaleDateString()}</span>
+            </div>
           </div>
         </div>
       </div>

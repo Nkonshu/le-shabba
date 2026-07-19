@@ -133,19 +133,21 @@ export function AnswerCard({
           <img src={answer.attachment_url} alt="" className="max-h-40 w-fit rounded-lg object-cover" />
         )}
 
-        <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-400">
-          <span className="font-medium text-neutral-500">{answer.author?.full_name ?? t("anonymous")}</span>
-          {answer.author && (
-            <RankBadge
-              points={answer.author.genie_points}
-              badgesBronze={answer.author.badges_bronze}
-              badgesArgent={answer.author.badges_argent}
-              badgesOr={answer.author.badges_or}
-            />
-          )}
-          <span>
-            {answer.last_moderated_by ? t("moderatedBy") : ""} · {new Date(answer.created_at).toLocaleDateString()}
-          </span>
+        <div className="flex justify-end">
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-neutral-100 px-2 py-1.5 text-[10px] text-neutral-400 dark:border-neutral-900">
+            <span className="font-medium text-neutral-500">{answer.author?.full_name ?? t("anonymous")}</span>
+            {answer.author && (
+              <RankBadge
+                points={answer.author.genie_points}
+                badgesBronze={answer.author.badges_bronze}
+                badgesArgent={answer.author.badges_argent}
+                badgesOr={answer.author.badges_or}
+              />
+            )}
+            <span>
+              {answer.last_moderated_by ? t("moderatedBy") : ""} · {new Date(answer.created_at).toLocaleDateString()}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-3 text-xs">

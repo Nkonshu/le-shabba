@@ -38,6 +38,9 @@
     "logout": "Se déconnecter",
     "login": "Se connecter",
     "revisionSheets": "Fiches de révision",
+    "groupContent": "Contenu",
+    "groupCommunity": "Communauté",
+    "groupPersonal": "Personnel",
     "legalNotice": "Mentions légales",
     "privacy": "Confidentialité",
     "terms": "CGU"
@@ -168,6 +171,7 @@
   },
   "forum": {
     "title": "Forum",
+    "questionsCount": "{count, plural, one {# question} other {# questions}}",
     "askQuestion": "Poser une question",
     "emptyTopics": "Aucune question ici pour l'instant — sois le premier à en poser une.",
     "closedDuplicate": "Fermé (doublon)",
