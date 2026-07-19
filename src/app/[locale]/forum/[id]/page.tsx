@@ -9,6 +9,7 @@ import { TopicDiscussion } from "@/src/components/forum/topic-discussion";
 import { ReportButton } from "@/src/components/moderation/report-button";
 import { ShareButton } from "@/src/components/share/share-button";
 import { RankBadge } from "@/src/components/reputation/rank-badge";
+import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 import type { Metadata } from "next";
 
@@ -119,8 +120,16 @@ export default async function TopicPage({
   } | null;
   const isSolved = proposals.some((p) => p.is_solution);
 
+  const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }] = await Promise.all([
+    supabase.from("forum_topics").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    supabase.from("forum_answers").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    supabase.from("votes").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+  ]);
+
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-10">
+    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-start">
+    <main className="flex flex-1 flex-col gap-4">
       <div className="flex items-start justify-between gap-2">
         <h1 className="text-xl font-black">{topic.title}</h1>
         <div className="flex items-center gap-1">
@@ -137,42 +146,8 @@ export default async function TopicPage({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        {level && (
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] dark:bg-neutral-900">{level.label}</span>
-        )}
-        <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-          {topic.subject}
-        </span>
-        {topic.status === "closed_duplicate" && (
-          <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500 dark:bg-neutral-900">
-            {t("closedDuplicate")}
-          </span>
-        )}
-        {((topic.tags as string[] | null) ?? []).map((tag) => (
-          <span key={tag} className="rounded-full bg-neutral-50 px-2 py-0.5 text-[10px] text-neutral-400 dark:bg-neutral-950">
-            #{tag}
-          </span>
-        ))}
-      </div>
-
-      <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
-
-      <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-400">
-        <span className="font-medium text-neutral-500">{author?.full_name ?? t("anonymous")}</span>
-        {author && (
-          <RankBadge
-            points={author.genie_points}
-            badgesBronze={author.badges_bronze}
-            badgesArgent={author.badges_argent}
-            badgesOr={author.badges_or}
-          />
-        )}
-        <span>· {new Date(topic.created_at).toLocaleDateString()}</span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+      <div className="flex gap-3">
+        <div className="flex shrink-0 flex-col items-center gap-2">
           <VoteArrows
             targetType="topic"
             targetId={topic.id}
@@ -180,10 +155,48 @@ export default async function TopicPage({
             initialCount={topic.votes_count}
             initialVote={userVoteTopic}
           />
-          <span className="text-[10px] text-neutral-400">
-            {t("viewsCount", { count: topic.views_count })} · {t("proposalsCount", { count: proposals.length })}
-          </span>
+          <span className="text-center text-[10px] text-neutral-400">{t("viewsCount", { count: topic.views_count })}</span>
         </div>
+
+        <div className="flex flex-1 flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {level && (
+              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] dark:bg-neutral-900">{level.label}</span>
+            )}
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+              {topic.subject}
+            </span>
+            {topic.status === "closed_duplicate" && (
+              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500 dark:bg-neutral-900">
+                {t("closedDuplicate")}
+              </span>
+            )}
+            {((topic.tags as string[] | null) ?? []).map((tag) => (
+              <span key={tag} className="rounded-full bg-neutral-50 px-2 py-0.5 text-[10px] text-neutral-400 dark:bg-neutral-950">
+                #{tag}
+              </span>
+            ))}
+          </div>
+
+          <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
+
+          <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-400">
+            <span className="font-medium text-neutral-500">{author?.full_name ?? t("anonymous")}</span>
+            {author && (
+              <RankBadge
+                points={author.genie_points}
+                badgesBronze={author.badges_bronze}
+                badgesArgent={author.badges_argent}
+                badgesOr={author.badges_or}
+              />
+            )}
+            <span>· {new Date(topic.created_at).toLocaleDateString()}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] text-neutral-400">{t("proposalsCount", { count: proposals.length })}</span>
         <FollowButton topicId={topic.id} userId={user?.id ?? null} initialSubscribed={isSubscribed} />
       </div>
 
@@ -197,5 +210,14 @@ export default async function TopicPage({
         canReport={canReport}
       />
     </main>
+
+    <aside className="lg:w-72 lg:shrink-0">
+      <ActivitySidebar
+        questionsToday={questionsToday ?? 0}
+        answersToday={answersToday ?? 0}
+        votesToday={votesToday ?? 0}
+      />
+    </aside>
+    </div>
   );
 }

@@ -3,11 +3,19 @@ import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentUser } from "@/src/lib/dal";
 import { Link } from "@/src/i18n/navigation";
 import { TopicCard, type TopicCardData } from "@/src/components/forum/topic-card";
+import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
 
 export default async function ForumPage() {
   const t = await getTranslations("forum");
   const supabase = await createClient();
   const user = await getCurrentUser();
+
+  const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+  const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }] = await Promise.all([
+    supabase.from("forum_topics").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    supabase.from("forum_answers").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+    supabase.from("votes").select("id", { count: "exact", head: true }).gte("created_at", startOfDay),
+  ]);
 
   const { data: topics } = await supabase
     .from("forum_topics")
@@ -45,45 +53,55 @@ export default async function ForumPage() {
   const favoritedTopics = new Set((favsResult.data ?? []).map((f) => f.target_id));
 
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-4 px-4 py-10">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-black">{t("title")}</h1>
-        {user && (
-          <Link
-            href="/forum/nouvelle-question"
-            className="min-h-11 rounded-xl bg-accent-blue px-4 text-sm font-medium leading-[2.75rem] text-white"
-          >
-            {t("askQuestion")}
-          </Link>
-        )}
-      </div>
-
-      {(topics ?? []).length === 0 ? (
-        <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">
-          {t("emptyTopics")}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-3">
-          {(topics ?? []).map((topic) => {
-            const answersCount = Array.isArray(topic.forum_answers)
-              ? ((topic.forum_answers[0] as unknown as { count: number } | undefined)?.count ?? 0)
-              : 0;
-            return (
-              <TopicCard
-                key={topic.id}
-                userId={user?.id ?? null}
-                topic={{
-                  ...(topic as unknown as TopicCardData),
-                  answersCount,
-                  hasSolution: solvedSet.has(topic.id),
-                  userVote: voteByTopic.get(topic.id) ?? null,
-                  isFavorited: favoritedTopics.has(topic.id),
-                }}
-              />
-            );
-          })}
+    <div className="mx-auto flex max-w-5xl flex-col gap-8 px-4 py-10 lg:flex-row lg:items-start">
+      <main className="flex flex-1 flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-black">{t("title")}</h1>
+          {user && (
+            <Link
+              href="/forum/nouvelle-question"
+              className="min-h-11 rounded-xl bg-accent-blue px-4 text-sm font-medium leading-[2.75rem] text-white"
+            >
+              {t("askQuestion")}
+            </Link>
+          )}
         </div>
-      )}
-    </main>
+
+        {(topics ?? []).length === 0 ? (
+          <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">
+            {t("emptyTopics")}
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {(topics ?? []).map((topic) => {
+              const answersCount = Array.isArray(topic.forum_answers)
+                ? ((topic.forum_answers[0] as unknown as { count: number } | undefined)?.count ?? 0)
+                : 0;
+              return (
+                <TopicCard
+                  key={topic.id}
+                  userId={user?.id ?? null}
+                  topic={{
+                    ...(topic as unknown as TopicCardData),
+                    answersCount,
+                    hasSolution: solvedSet.has(topic.id),
+                    userVote: voteByTopic.get(topic.id) ?? null,
+                    isFavorited: favoritedTopics.has(topic.id),
+                  }}
+                />
+              );
+            })}
+          </div>
+        )}
+      </main>
+
+      <aside className="lg:w-72 lg:shrink-0">
+        <ActivitySidebar
+          questionsToday={questionsToday ?? 0}
+          answersToday={answersToday ?? 0}
+          votesToday={votesToday ?? 0}
+        />
+      </aside>
+    </div>
   );
 }

@@ -68,38 +68,40 @@ export function TopicCard({ topic, userId }: { topic: TopicCardData; userId: str
 
         {excerpt && <p className="line-clamp-1 text-sm text-neutral-500">{excerpt}</p>}
 
-        <div className="flex flex-wrap items-center gap-1.5">
-          {topic.level && (
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] dark:bg-neutral-900">
-              {topic.level.label}
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
+          <div className="flex flex-wrap items-center gap-1.5">
+            {topic.level && (
+              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] dark:bg-neutral-900">
+                {topic.level.label}
+              </span>
+            )}
+            <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700 dark:bg-blue-950 dark:text-blue-300">
+              {topic.subject}
             </span>
-          )}
-          <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            {topic.subject}
-          </span>
-          {topic.status === "closed_duplicate" && (
-            <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500 dark:bg-neutral-900">
-              {t("closedDuplicate")}
-            </span>
-          )}
-          {(topic.tags ?? []).slice(0, 3).map((tag) => (
-            <span key={tag} className="rounded-full bg-neutral-50 px-2 py-0.5 text-[10px] text-neutral-400 dark:bg-neutral-950">
-              #{tag}
-            </span>
-          ))}
-        </div>
+            {topic.status === "closed_duplicate" && (
+              <span className="rounded-full bg-neutral-100 px-2 py-0.5 text-[10px] text-neutral-500 dark:bg-neutral-900">
+                {t("closedDuplicate")}
+              </span>
+            )}
+            {(topic.tags ?? []).slice(0, 3).map((tag) => (
+              <span key={tag} className="rounded-full bg-neutral-50 px-2 py-0.5 text-[10px] text-neutral-400 dark:bg-neutral-950">
+                #{tag}
+              </span>
+            ))}
+          </div>
 
-        <div className="flex items-center gap-2 text-[10px] text-neutral-400">
-          {topic.author?.avatar_url ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={topic.author.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
-          ) : (
-            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
-              {topic.author?.full_name?.charAt(0) ?? "?"}
-            </div>
-          )}
-          <span className="font-medium text-neutral-500">{topic.author?.full_name ?? t("anonymous")}</span>
-          <span>· {new Date(topic.created_at).toLocaleDateString()}</span>
+          <div className="flex shrink-0 items-center gap-2 text-[10px] text-neutral-400">
+            {topic.author?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={topic.author.avatar_url} alt="" className="h-5 w-5 rounded-full object-cover" />
+            ) : (
+              <div className="flex h-5 w-5 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800">
+                {topic.author?.full_name?.charAt(0) ?? "?"}
+              </div>
+            )}
+            <span className="font-medium text-neutral-500">{topic.author?.full_name ?? t("anonymous")}</span>
+            <span>· {new Date(topic.created_at).toLocaleDateString()}</span>
+          </div>
         </div>
       </div>
     </div>

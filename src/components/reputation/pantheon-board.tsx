@@ -96,37 +96,39 @@ export function PantheonBoard({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1 dark:bg-neutral-900">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c}
-            onClick={() => setCategory(c)}
-            className={`min-h-9 shrink-0 rounded-lg px-3 text-sm font-medium ${
-              category === c ? "bg-white shadow-sm dark:bg-neutral-800" : "text-neutral-500"
-            }`}
-          >
-            {t(`categories.${c}`)}
-          </button>
-        ))}
-      </div>
-
-      {category !== "streaks" && (
-        <div className="flex gap-1 overflow-x-auto text-sm">
-          {WINDOWS.map((w) => (
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex gap-1 overflow-x-auto rounded-xl bg-neutral-100 p-1 dark:bg-neutral-900">
+          {CATEGORIES.map((c) => (
             <button
-              key={w}
-              onClick={() => setTimeWindow(w)}
-              className={`min-h-9 shrink-0 rounded-full border px-3 ${
-                timeWindow === w
-                  ? "border-accent-blue bg-blue-50 text-accent-blue dark:bg-blue-950"
-                  : "border-neutral-200 text-neutral-500 dark:border-neutral-800"
+              key={c}
+              onClick={() => setCategory(c)}
+              className={`min-h-9 shrink-0 rounded-lg px-3 text-sm font-medium ${
+                category === c ? "bg-white shadow-sm dark:bg-neutral-800" : "text-neutral-500"
               }`}
             >
-              {t(`windows.${w}`)}
+              {t(`categories.${c}`)}
             </button>
           ))}
         </div>
-      )}
+
+        {category !== "streaks" && (
+          <div className="flex shrink-0 gap-3 overflow-x-auto text-sm">
+            {WINDOWS.map((w) => (
+              <button
+                key={w}
+                onClick={() => setTimeWindow(w)}
+                className={`flex min-h-9 shrink-0 items-center px-1 ${
+                  timeWindow === w
+                    ? "font-medium text-accent-blue underline underline-offset-4"
+                    : "text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-50"
+                }`}
+              >
+                {t(`windows.${w}`)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <div className="flex flex-wrap gap-2">
         <select

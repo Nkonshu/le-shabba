@@ -72,9 +72,11 @@ voir §3) :
    `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_JWT_SECRET`,
    `NEXT_PUBLIC_MEILISEARCH_HOST`, `MEILISEARCH_API_KEY`, etc.) — **jamais** en copiant le fichier
    dans le dépôt, seulement dans ce champ Coolify qui reste privé au VPS.
-4. Domaine : associer un sous-domaine (ex. `www.le-shabba.fr` ou `le-shabba.fr`) au resource dans
-   Coolify, puis créer l'enregistrement DNS correspondant côté Cloudflare (nuage orange activé pour
-   profiter du proxy/HTTPS automatique).
+4. Domaine : `le-shabba.fr` (domaine racine — décision prise le 19/07/2026 : la plateforme est le
+   produit, pas de site vitrine séparé à distinguer), avec `www.le-shabba.fr` en alias. Associer les
+   deux au resource dans Coolify, puis créer les enregistrements côté Cloudflare (nuage orange activé
+   pour profiter du proxy/HTTPS automatique) : un enregistrement `A` sur `@` vers l'IP publique du
+   VPS, un `CNAME` sur `www` vers `le-shabba.fr`.
 5. Premier déploiement manuel (bouton "Deploy" dans Coolify) pour vérifier que le build passe.
 6. Activer le déploiement automatique sur push (webhook GitHub → Coolify), pour que l'étape 2.b
    ci-dessous devienne suffisante seule.

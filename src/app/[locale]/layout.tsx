@@ -54,9 +54,13 @@ export default async function LocaleLayout({
           <ServiceWorkerRegister />
           <SyncQueueManager />
           <OfflineIndicator />
-          <SiteHeader />
-          <div className="flex-1">{maintenanceMode && !isStaff ? <MaintenanceNotice /> : children}</div>
-          <SiteFooter />
+          <div className="flex flex-1 flex-col md:flex-row">
+            <SiteHeader />
+            <div className="flex min-h-0 flex-1 flex-col">
+              <div className="flex-1">{maintenanceMode && !isStaff ? <MaintenanceNotice /> : children}</div>
+              <SiteFooter />
+            </div>
+          </div>
           {bugReportsEnabled && !(maintenanceMode && !isStaff) && <BugReportButton />}
           {!(maintenanceMode && !isStaff) && <InstallBanner />}
           <Toaster />
