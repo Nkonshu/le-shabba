@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { X } from "@phosphor-icons/react";
+import { RichTextEditor } from "@/src/components/forum/rich-text-editor";
 
 export function TopicEditDialog({
   initialTitle,
@@ -20,9 +21,10 @@ export function TopicEditDialog({
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
   const [submitting, setSubmitting] = useState(false);
+  const contentIsEmpty = content.replace(/<[^>]*>/g, "").trim().length === 0;
 
   async function handleSubmit() {
-    if (!title.trim() || !content.trim()) return;
+    if (!title.trim() || contentIsEmpty) return;
     setSubmitting(true);
     await onSubmit(title, content);
     setSubmitting(false);
@@ -54,16 +56,10 @@ export function TopicEditDialog({
             placeholder={t("titleLabel")}
             className="min-h-11 rounded-xl border border-neutral-200 bg-white px-3 text-sm dark:border-neutral-800 dark:bg-neutral-900"
           />
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows={6}
-            placeholder={t("descriptionLabel")}
-            className="rounded-xl border border-neutral-200 bg-white px-3 py-2 text-sm dark:border-neutral-800 dark:bg-neutral-900"
-          />
+          <RichTextEditor content={content} onChange={setContent} placeholder={t("descriptionLabel")} />
           <button
             onClick={handleSubmit}
-            disabled={submitting || !title.trim() || !content.trim()}
+            disabled={submitting || !title.trim() || contentIsEmpty}
             className="min-h-11 rounded-xl bg-accent-blue px-4 font-medium text-white disabled:opacity-50"
           >
             {tc("save")}

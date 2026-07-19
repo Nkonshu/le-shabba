@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/src/i18n/navigation";
 import { createClient } from "@/src/utils/supabase/client";
+import { RichTextEditor } from "@/src/components/forum/rich-text-editor";
 
 const MAX_TAGS = 5;
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -146,9 +147,10 @@ export function TopicForm({
     router.push(`${redirectBasePath}/${inserted.id}`);
   }
 
+  const contentIsEmpty = content.replace(/<[^>]*>/g, "").trim().length === 0;
   const canGoNext =
     (step === 1 && levelId.length > 0 && subject.trim().length > 0 && title.trim().length > 0) ||
-    (step === 2 && content.trim().length > 0);
+    (step === 2 && !contentIsEmpty);
 
   return (
     <div className="flex flex-col gap-6">
@@ -211,15 +213,10 @@ export function TopicForm({
 
       {step === 2 && (
         <div className="flex flex-col gap-4">
-          <label className="flex flex-col gap-1.5 text-sm font-medium">
+          <div className="flex flex-col gap-1.5 text-sm font-medium">
             {t("descriptionLabel")}
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={6}
-              className="rounded-xl border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900"
-            />
-          </label>
+            <RichTextEditor content={content} onChange={setContent} placeholder={t("descriptionLabel")} />
+          </div>
 
           <div className="flex flex-col gap-1.5 text-sm font-medium">
             {t("tagsLabel")}

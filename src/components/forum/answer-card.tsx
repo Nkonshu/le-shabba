@@ -5,6 +5,7 @@ import { CheckCircle, PencilSimple, Trash, ArrowBendUpLeft } from "@phosphor-ico
 import { VoteArrows } from "@/src/components/interactions/vote-arrows";
 import { FavoriteStar } from "@/src/components/interactions/favorite-star";
 import { AttachmentLink } from "@/src/components/interactions/attachment-link";
+import { SafeHtml } from "@/src/components/forum/safe-html";
 import { ReportButton } from "@/src/components/moderation/report-button";
 import { ShareButton } from "@/src/components/share/share-button";
 import { RankBadge } from "@/src/components/reputation/rank-badge";
@@ -136,7 +137,7 @@ export function AnswerCard({
           </a>
         )}
 
-        <p className="whitespace-pre-wrap text-sm">{answer.content}</p>
+        <SafeHtml html={answer.content} className="text-sm" />
 
         {answer.attachment_url && <AttachmentLink url={answer.attachment_url} />}
 

@@ -14,6 +14,7 @@ import { getHotNetworkItems } from "@/src/lib/hot-network";
 import { StatsPanel } from "@/src/components/interactions/stats-panel";
 import { AttachmentLink } from "@/src/components/interactions/attachment-link";
 import { TopicManageButtons } from "@/src/components/forum/topic-manage-buttons";
+import { SafeHtml } from "@/src/components/forum/safe-html";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 import type { Metadata } from "next";
 
@@ -203,7 +204,7 @@ export default async function TopicPage({
             ))}
           </div>
 
-          <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
+          <SafeHtml html={topic.content} className="text-sm" />
 
           {topic.attachment_url && <AttachmentLink url={topic.attachment_url as string} />}
 

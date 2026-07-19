@@ -11,6 +11,7 @@ import { ReportButton } from "@/src/components/moderation/report-button";
 import { RankBadge } from "@/src/components/reputation/rank-badge";
 import { AttachmentLink } from "@/src/components/interactions/attachment-link";
 import { TopicManageButtons } from "@/src/components/forum/topic-manage-buttons";
+import { SafeHtml } from "@/src/components/forum/safe-html";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 
 export default async function SchoolTopicPage({
@@ -156,7 +157,7 @@ export default async function SchoolTopicPage({
             ))}
           </div>
 
-          <p className="whitespace-pre-wrap text-sm">{topic.content}</p>
+          <SafeHtml html={topic.content} className="text-sm" />
 
           {topic.attachment_url && <AttachmentLink url={topic.attachment_url as string} />}
 

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { X } from "@phosphor-icons/react";
+import { RichTextEditor } from "@/src/components/forum/rich-text-editor";
 
 export function ReplyDialog({
   type,
@@ -37,8 +38,13 @@ export function ReplyDialog({
         ? t("proposalTitle")
         : t("commentTitle");
 
+  // Toolbar de formatage réservée aux propositions — un commentaire reste en texte brut, comme sur
+  // Stack Overflow (enjeu trop faible pour justifier du HTML à assainir).
+  const contentIsEmpty =
+    type === "proposal" ? content.replace(/<[^>]*>/g, "").trim().length === 0 : content.trim().length === 0;
+
   async function handleSubmit() {
-    if (!content.trim() && !file) return;
+    if (contentIsEmpty && !file) return;
     setSubmitting(true);
     await onSubmit(content, file);
     setSubmitting(false);
@@ -78,12 +84,16 @@ export function ReplyDialog({
           </div>
         )}
 
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          rows={4}
-          className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900"
-        />
+        {type === "proposal" ? (
+          <RichTextEditor content={content} onChange={setContent} />
+        ) : (
+          <textarea
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={4}
+            className="w-full rounded-xl border border-neutral-200 bg-white px-3 py-2 dark:border-neutral-800 dark:bg-neutral-900"
+          />
+        )}
 
         <input
           type="file"
@@ -94,7 +104,7 @@ export function ReplyDialog({
 
         <button
           onClick={handleSubmit}
-          disabled={submitting || (!content.trim() && !file)}
+          disabled={submitting || (contentIsEmpty && !file)}
           className="mt-3 min-h-11 w-full rounded-xl bg-accent-blue px-4 font-medium text-white disabled:opacity-50"
         >
           {t("send")}
