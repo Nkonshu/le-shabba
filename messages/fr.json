@@ -414,7 +414,11 @@
     },
     "pointsLabel": "{points} pts",
     "maxRankReached": "Rang maximum atteint",
-    "pointsUntilNextRank": "Encore {points} points pour devenir {rank}"
+    "pointsUntilNextRank": "Encore {points} points pour devenir {rank}",
+    "genieePointsExplainer": "points de génie, gagnés en aidant la communauté (réponses utiles, votes reçus...)",
+    "goldBadges": "{count} badge(s) or",
+    "silverBadges": "{count} badge(s) argent",
+    "bronzeBadges": "{count} badge(s) bronze"
   },
   "participants": {
     "title": "Panthéon",

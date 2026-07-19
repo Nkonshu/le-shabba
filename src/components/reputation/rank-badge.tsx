@@ -31,8 +31,27 @@ export function RankBadge({
   const rank = getRank(points);
   const hasBadges = badgesOr > 0 || badgesArgent > 0 || badgesBronze > 0;
 
+  const tooltipLines = [
+    `${t(`ranks.${rank.key}`)} · ${formatPoints(points, locale)} ${t("genieePointsExplainer")}`,
+    rank.next ? t("pointsUntilNextRank", { points: rank.next.remaining, rank: t(`ranks.${rank.next.key}`) }) : t("maxRankReached"),
+    ...(hasBadges
+      ? [
+          [
+            badgesOr > 0 ? t("goldBadges", { count: badgesOr }) : null,
+            badgesArgent > 0 ? t("silverBadges", { count: badgesArgent }) : null,
+            badgesBronze > 0 ? t("bronzeBadges", { count: badgesBronze }) : null,
+          ]
+            .filter(Boolean)
+            .join(" · "),
+        ]
+      : []),
+  ];
+
   return (
-    <span className={`inline-flex flex-wrap items-center gap-1.5 ${size === "md" ? "text-sm" : "text-[11px]"}`}>
+    <span
+      title={tooltipLines.join("\n")}
+      className={`inline-flex flex-wrap items-center gap-1.5 ${size === "md" ? "text-sm" : "text-[11px]"}`}
+    >
       <span className={`rounded-full px-1.5 py-0.5 font-medium ${RANK_STYLES[rank.key]}`}>{t(`ranks.${rank.key}`)}</span>
       <span className="font-medium text-neutral-500 dark:text-neutral-400">
         {t("pointsLabel", { points: formatPoints(points, locale) })}

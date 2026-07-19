@@ -414,7 +414,11 @@
     },
     "pointsLabel": "{points} pts",
     "maxRankReached": "Maximum rank reached",
-    "pointsUntilNextRank": "{points} points left to become {rank}"
+    "pointsUntilNextRank": "{points} points left to become {rank}",
+    "genieePointsExplainer": "genius points, earned by helping the community (useful answers, votes received...)",
+    "goldBadges": "{count} gold badge(s)",
+    "silverBadges": "{count} silver badge(s)",
+    "bronzeBadges": "{count} bronze badge(s)"
   },
   "participants": {
     "title": "Hall of Fame",
