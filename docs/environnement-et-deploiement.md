@@ -228,16 +228,21 @@ administration. Donc si le PC meurt :
 Ce qui est en jeu, c'est uniquement la capacité de la personne à recoder/administrer depuis un
 nouvel appareil.
 
-### ⚠️ À faire MAINTENANT, avant qu'un problème n'arrive (sinon la suite ne marche qu'à moitié)
+### ✅ Déjà fait (21/07/2026) : sauvegarde chiffrée sur Git
 
-Deux fichiers n'existent **que sur le PC actuel**, nulle part ailleurs (ni sur GitHub, ni sur le
-VPS) :
+`.env.local` et la clé SSH privée sont sauvegardés, chiffrés (AES256, GPG), directement dans le
+dépôt : `secrets-backup/secrets-backup.gpg`. Le dépôt GitHub étant **public**, ce fichier ne contient
+jamais rien en clair — illisible sans la phrase de passe (générée aléatoirement, communiquée une
+seule fois, à conserver dans un gestionnaire de mots de passe, jamais dans le dépôt lui-même).
 
-1. **`.env.local`** (racine du projet) — toutes les clés secrètes (Supabase, Meilisearch...). À
-   copier dans une note **sécurisée** d'un gestionnaire de mots de passe (jamais dans un fichier
-   texte simple, jamais dans un e-mail).
-2. **La clé SSH privée** (`~/.ssh/id_ed25519`, sans le `.pub`) — permet de se connecter au VPS sans
-   mot de passe. À copier aussi dans une note sécurisée d'un gestionnaire de mots de passe.
+Pour restaurer depuis un PC neuf, une fois le dépôt cloné (étape 2 ci-dessous) :
+```
+gpg -d secrets-backup/secrets-backup.gpg -o secrets-restored.zip
+```
+puis extraire l'archive : elle contient `.env.local` et `id_ed25519`, à replacer à leurs
+emplacements habituels (voir étapes 3 et 5).
+
+### ⚠️ À faire MAINTENANT si ce n'est pas déjà fait
 
 Vérifier aussi que :
 - Le gestionnaire de mots de passe est accessible depuis n'importe quel appareil (compte cloud, pas
@@ -261,17 +266,19 @@ Tout le code jusqu'au dernier `git push` est récupéré — une session de trav
 au moment de la panne est perdue (raison de plus pour pousser souvent).
 
 **3. Restaurer `.env.local` :**
-   - Si sauvegardé à l'avance (voir plus haut) : recréer le fichier, coller le contenu depuis le
-     gestionnaire de mots de passe.
-   - Sinon : retrouver chaque valeur une par une dans Coolify (onglet "Environment Variables" de
-     chaque service) une fois l'accès à Coolify restauré (étapes 4 à 6) — plus long, pas bloquant.
+   - Déchiffrer la sauvegarde (voir plus haut), extraire `secrets-restored.zip`, placer
+     `.env.local` à la racine du projet.
+   - Si la phrase de passe est introuvable : retrouver chaque valeur une par une dans Coolify
+     (onglet "Environment Variables" de chaque service) une fois l'accès à Coolify restauré
+     (étapes 4 à 6) — plus long, pas bloquant.
 
 **4. Réinstaller Tailscale et se reconnecter** avec le même compte. Le nouveau PC apparaît comme un
    nouvel appareil sur le même réseau privé — l'accès au VPS (SSH, Coolify) refonctionne
    immédiatement.
 
 **5. Restaurer l'accès SSH au VPS :**
-   - Clé privée sauvegardée : la recopier dans `~/.ssh/id_ed25519` sur le nouveau PC, tester
+   - La clé privée est dans la même sauvegarde chiffrée que `.env.local` (étape 3,
+     `secrets-restored.zip`) : la placer dans `~/.ssh/id_ed25519` sur le nouveau PC, tester
      `ssh ubuntu@91.134.142.241`.
    - Clé perdue, non sauvegardée : se connecter avec le mot de passe Linux de secours (proposé
      automatiquement par `ssh ubuntu@91.134.142.241` si aucune clé n'est présentée), puis générer
