@@ -17,6 +17,7 @@ import { StatBarChart, StatLineChart, StatPieChart } from "@/src/components/admi
 import { StatsFilterBar } from "@/src/components/admin/stats/stats-filter-bar";
 import { ExportExcelButton } from "@/src/components/admin/stats/export-excel-button";
 import { CrossFilterBar } from "@/src/components/admin/stats/cross-filter-bar";
+import { GrowthChartWithDrilldown } from "@/src/components/admin/stats/growth-chart-with-drilldown";
 
 type AuditEntry = {
   id: string;
@@ -321,33 +322,98 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
         ]}
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <StatLineChart title={t("newUsers", { count: (users ?? []).length })} data={bucket(users ?? [])} emptyLabel={t("statsEmpty")} />
-        <StatLineChart title={t("newComments", { count: comments.length })} data={bucket(comments)} emptyLabel={t("statsEmpty")} />
-        <StatLineChart title={t("newProposals", { count: proposals.length })} data={bucket(proposals)} emptyLabel={t("statsEmpty")} />
-        <StatLineChart title={t("newVotes", { count: (votes ?? []).length })} data={bucket(votes ?? [])} emptyLabel={t("statsEmpty")} />
-        <StatLineChart
+        <GrowthChartWithDrilldown
+          metric="users"
+          title={t("newUsers", { count: (users ?? []).length })}
+          data={bucket(users ?? [])}
+          emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
+        <GrowthChartWithDrilldown
+          metric="comments"
+          title={t("newComments", { count: comments.length })}
+          data={bucket(comments)}
+          emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
+        <GrowthChartWithDrilldown
+          metric="proposals"
+          title={t("newProposals", { count: proposals.length })}
+          data={bucket(proposals)}
+          emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
+        <GrowthChartWithDrilldown
+          metric="votes"
+          title={t("newVotes", { count: (votes ?? []).length })}
+          data={bucket(votes ?? [])}
+          emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
+        <GrowthChartWithDrilldown
+          metric="favorites"
           title={t("newFavorites", { count: (favorites ?? []).length })}
           data={bucket(favorites ?? [])}
           emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
         />
         <div className="flex flex-col gap-2">
-          <StatLineChart title={t("newReferrals", { count: referralRows.length })} data={bucket(referralRows)} emptyLabel={t("statsEmpty")} />
+          <GrowthChartWithDrilldown
+            metric="referrals"
+            title={t("newReferrals", { count: referralRows.length })}
+            data={bucket(referralRows)}
+            emptyLabel={t("statsEmpty")}
+            period={period}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
           <p className="text-xs text-neutral-500">{t("referralActivationRate", { rate: activationRate })}</p>
         </div>
-        <StatLineChart
+        <GrowthChartWithDrilldown
+          metric="documentViews"
           title={t("documentViews", { count: (docViews ?? []).length })}
           data={bucket(docViews ?? [])}
           emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
         />
-        <StatLineChart
+        <GrowthChartWithDrilldown
+          metric="documentDownloads"
           title={t("documentDownloads", { count: (docDownloads ?? []).length })}
           data={bucket(docDownloads ?? [])}
           emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
         />
-        <StatLineChart
+        <GrowthChartWithDrilldown
+          metric="topicViews"
           title={t("topicViews", { count: (topicViews ?? []).length })}
           data={bucket(topicViews ?? [])}
           emptyLabel={t("statsEmpty")}
+          period={period}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
         />
       </div>
     </div>

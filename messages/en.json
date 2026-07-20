@@ -663,6 +663,9 @@
     "referralActivationRate": "Referral activation rate: {rate}%",
     "documentViews": "Document views ({count})",
     "documentDownloads": "Downloads ({count})",
-    "topicViews": "Forum topic views ({count})"
+    "topicViews": "Forum topic views ({count})",
+    "drilldownHint": "Click a point on the curve to see the detail.",
+    "drilldownLoading": "Loading...",
+    "drilldownEmpty": "Nothing to show for this period."
   }
 }

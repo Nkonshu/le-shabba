@@ -71,3 +71,29 @@ export function countByPeriod<T>(
   }
   return [...counts.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([label, value]) => ({ label, value }));
 }
+
+// Reconstruit la plage de dates réelle [start, end) derrière un label de bucket cliqué sur une
+// courbe "Croissance" (ex. "2026-07" en mode mois) — nécessaire pour aller chercher les lignes
+// exactes derrière un point du graphique (le clic-vers-détail).
+export function periodRange(label: string, period: StatsPeriod): { start: string; end: string } {
+  if (period === "year") {
+    const year = Number(label);
+    return { start: `${year}-01-01`, end: `${year + 1}-01-01` };
+  }
+  if (period === "month") {
+    const [y, m] = label.split("-").map(Number);
+    const start = new Date(Date.UTC(y, m - 1, 1));
+    const end = new Date(Date.UTC(y, m, 1));
+    return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+  }
+  if (period === "week") {
+    const start = new Date(`${label}T00:00:00Z`);
+    const end = new Date(start);
+    end.setUTCDate(end.getUTCDate() + 7);
+    return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+  }
+  const start = new Date(`${label}T00:00:00Z`);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 1);
+  return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+}

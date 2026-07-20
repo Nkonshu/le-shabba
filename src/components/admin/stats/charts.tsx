@@ -62,10 +62,12 @@ export function StatLineChart({
   title,
   data,
   emptyLabel,
+  onPointClick,
 }: {
   title: string;
   data: { label: string; value: number }[];
   emptyLabel: string;
+  onPointClick?: (label: string) => void;
 }) {
   return (
     <ChartCard title={title}>
@@ -73,7 +75,13 @@ export function StatLineChart({
         <p className="py-8 text-center text-xs text-neutral-400">{emptyLabel}</p>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={data}>
+          <LineChart
+            data={data}
+            className={onPointClick ? "cursor-pointer" : undefined}
+            onClick={(state) => {
+              if (onPointClick && state.activeLabel !== undefined) onPointClick(String(state.activeLabel));
+            }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke={GRID} vertical={false} />
             <XAxis dataKey="label" tick={{ fill: TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} />
             <YAxis tick={{ fill: TEXT, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />

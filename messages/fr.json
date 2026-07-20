@@ -663,6 +663,9 @@
     "referralActivationRate": "Taux d'activation des parrainages : {rate}%",
     "documentViews": "Vues de documents ({count})",
     "documentDownloads": "Téléchargements ({count})",
-    "topicViews": "Vues de sujets forum ({count})"
+    "topicViews": "Vues de sujets forum ({count})",
+    "drilldownHint": "Clique sur un point de la courbe pour voir le détail.",
+    "drilldownLoading": "Chargement...",
+    "drilldownEmpty": "Rien à afficher pour cette période."
   }
 }
