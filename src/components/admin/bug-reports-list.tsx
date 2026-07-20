@@ -19,10 +19,12 @@ export async function BugReportsList({
   status,
   from,
   to,
+  userIds,
 }: {
   status?: string;
   from?: string;
   to?: string;
+  userIds?: string[];
 } = {}) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
@@ -38,6 +40,7 @@ export async function BugReportsList({
   if (status) query = query.eq("status", status);
   if (from) query = query.gte("created_at", from);
   if (to) query = query.lte("created_at", `${to}T23:59:59`);
+  if (userIds) query = query.in("reporter_id", userIds);
 
   const { data: reports } = await query;
 

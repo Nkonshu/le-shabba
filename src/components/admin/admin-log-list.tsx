@@ -17,11 +17,13 @@ export async function AdminLogList({
   actor,
   from,
   to,
+  userIds,
 }: {
   action?: string;
   actor?: string;
   from?: string;
   to?: string;
+  userIds?: string[];
 }) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
@@ -36,6 +38,7 @@ export async function AdminLogList({
   if (actor) query = query.eq("actor_id", actor);
   if (from) query = query.gte("created_at", from);
   if (to) query = query.lte("created_at", `${to}T23:59:59`);
+  if (userIds) query = query.in("actor_id", userIds);
 
   const { data: entries } = await query;
   const rows = (entries ?? []) as unknown as LogRow[];

@@ -108,10 +108,12 @@ export function SponsoredSlotsManager({
   slots,
   countries,
   levels,
+  matchingUserIds,
 }: {
   slots: SponsoredSlotRow[];
   countries: CountryOption[];
   levels: LevelOption[];
+  matchingUserIds: string[] | null;
 }) {
   const t = useTranslations("adminSponsoredSlots");
   const tc = useTranslations("common");
@@ -126,26 +128,34 @@ export function SponsoredSlotsManager({
   const [clicksBySlot, setClicksBySlot] = useState<Record<string, ClickRow[]>>({});
   const [loadingClicks, setLoadingClicks] = useState(false);
 
+  // Le filtre croisé partagé (pays/niveau/utilisateur) peut changer entre deux navigations sans que
+  // ce composant remonte — la clé de cache inclut donc le filtre actif, pour qu'un changement de
+  // filtre déclenche naturellement un nouveau chargement plutôt que de servir un résultat périmé.
+  const matchingUserIdsKey = matchingUserIds ? matchingUserIds.join(",") : "all";
+
   async function toggleClicks(slotId: string) {
     if (expandedClicksId === slotId) {
       setExpandedClicksId(null);
       return;
     }
     setExpandedClicksId(slotId);
-    if (clicksBySlot[slotId]) return;
+    const cacheKey = `${slotId}:${matchingUserIdsKey}`;
+    if (clicksBySlot[cacheKey]) return;
     setLoadingClicks(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from("sponsored_slot_clicks")
       .select("id, clicked_at, user:profiles(full_name)")
       .eq("slot_id", slotId)
       .order("clicked_at", { ascending: false })
       .limit(50);
+    if (matchingUserIds) query = query.in("user_id", matchingUserIds);
+    const { data, error } = await query;
     setLoadingClicks(false);
     if (error) {
       toast.error(t("saveError"));
       return;
     }
-    setClicksBySlot((prev) => ({ ...prev, [slotId]: (data as unknown as ClickRow[]) ?? [] }));
+    setClicksBySlot((prev) => ({ ...prev, [cacheKey]: (data as unknown as ClickRow[]) ?? [] }));
   }
 
   async function createSlot() {
@@ -259,12 +269,12 @@ export function SponsoredSlotsManager({
 
             {expandedClicksId === slot.id && (
               <div className="flex flex-col gap-1 rounded-lg bg-neutral-50 p-2 dark:bg-neutral-950">
-                {loadingClicks && !clicksBySlot[slot.id] ? (
+                {loadingClicks && !clicksBySlot[`${slot.id}:${matchingUserIdsKey}`] ? (
                   <span className="text-[11px] text-neutral-400">{tc("loading")}</span>
-                ) : (clicksBySlot[slot.id] ?? []).length === 0 ? (
+                ) : (clicksBySlot[`${slot.id}:${matchingUserIdsKey}`] ?? []).length === 0 ? (
                   <span className="text-[11px] text-neutral-400">{t("noClicks")}</span>
                 ) : (
-                  (clicksBySlot[slot.id] ?? []).map((click) => (
+                  (clicksBySlot[`${slot.id}:${matchingUserIdsKey}`] ?? []).map((click) => (
                     <div key={click.id} className="flex items-center justify-between text-[11px]">
                       <span>{click.user?.full_name ?? t("anonymousClick")}</span>
                       <span className="text-neutral-400">{new Date(click.clicked_at).toLocaleString()}</span>

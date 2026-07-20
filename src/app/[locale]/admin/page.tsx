@@ -16,6 +16,7 @@ import { SponsoredSlotsManager, type SponsoredSlotRow } from "@/src/components/a
 import { StatBarChart, StatLineChart, StatPieChart } from "@/src/components/admin/stats/charts";
 import { StatsFilterBar } from "@/src/components/admin/stats/stats-filter-bar";
 import { ExportExcelButton } from "@/src/components/admin/stats/export-excel-button";
+import { CrossFilterBar } from "@/src/components/admin/stats/cross-filter-bar";
 
 type AuditEntry = {
   id: string;
@@ -32,7 +33,6 @@ type AdminSearchParams = {
   actor?: string;
   uFrom?: string;
   uTo?: string;
-  uCountry?: string;
   uRole?: string;
   jFrom?: string;
   jTo?: string;
@@ -52,6 +52,9 @@ type AdminSearchParams = {
   gFrom?: string;
   gTo?: string;
   gPeriod?: string;
+  xCountry?: string;
+  xLevel?: string;
+  xUser?: string;
 };
 
 export default async function AdminPage({
@@ -78,12 +81,40 @@ export default async function AdminPage({
     { count: usersCount },
     { count: topicsCount },
     { count: openBugReportsCount },
+    { data: xCountries },
+    { data: xLevelsRaw },
+    { data: xUsersRaw },
   ] = await Promise.all([
     supabase.from("documents").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("forum_topics").select("id", { count: "exact", head: true }),
     supabase.from("bug_reports").select("id", { count: "exact", head: true }).eq("status", "open"),
+    supabase.from("countries").select("id, code, name").order("name"),
+    supabase.from("education_levels").select("id, label, country:countries(code)").order("label"),
+    supabase.from("profiles").select("id, full_name").order("full_name"),
   ]);
+
+  const xLevels = (xLevelsRaw ?? []).map((l) => ({
+    id: l.id as string,
+    label: l.label as string,
+    countryCode: (l.country as unknown as { code: string } | null)?.code ?? "",
+  }));
+  const xCountryIdByCode = new Map((xCountries ?? []).map((c) => [c.code, c.id]));
+  const xCountryId = sp.xCountry ? xCountryIdByCode.get(sp.xCountry) : undefined;
+
+  // Filtre croisé (pays/niveau/utilisateur) partagé par tous les onglets — résolu une seule fois ici
+  // en liste d'ids de profils, réutilisée par chaque onglet sur sa propre colonne de rattachement
+  // (author_id, actor_id, reporter_id, user_id...). null = pas de filtre actif ; [] = filtre actif
+  // mais personne ne correspond (doit quand même restreindre à zéro résultat, pas être ignoré).
+  let matchingUserIds: string[] | null = null;
+  if (sp.xCountry || sp.xLevel || sp.xUser) {
+    let idsQuery = supabase.from("profiles").select("id");
+    if (xCountryId) idsQuery = idsQuery.eq("country_id", xCountryId);
+    if (sp.xLevel) idsQuery = idsQuery.eq("level_id", sp.xLevel);
+    if (sp.xUser) idsQuery = idsQuery.eq("id", sp.xUser);
+    const { data: matchedProfiles } = await idsQuery;
+    matchingUserIds = (matchedProfiles ?? []).map((p) => p.id);
+  }
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
@@ -95,6 +126,15 @@ export default async function AdminPage({
         <StatCard label={t("statTopics")} value={topicsCount ?? 0} />
         <StatCard label={t("statOpenBugs")} value={openBugReportsCount ?? 0} />
       </div>
+
+      <CrossFilterBar
+        countries={(xCountries ?? []).map((c) => ({ code: c.code, name: c.name }))}
+        levels={xLevels}
+        users={xUsersRaw ?? []}
+        country={sp.xCountry}
+        level={sp.xLevel}
+        userId={sp.xUser}
+      />
 
       <div className="flex gap-2 overflow-x-auto border-b border-neutral-100 dark:border-neutral-900">
         <Link
@@ -172,19 +212,19 @@ export default async function AdminPage({
       </div>
 
       {tab === "features" && <FeaturesTab />}
-      {tab === "users" && <UsersTab viewerRole={profile.role} sp={sp} />}
-      {tab === "journal" && <JournalTab action={action} actor={actor} sp={sp} />}
-      {tab === "anomalies" && <AnomaliesTab sp={sp} />}
-      {tab === "schools" && <SchoolsTab sp={sp} />}
-      {tab === "payments" && <PaymentsTab sp={sp} />}
+      {tab === "users" && <UsersTab viewerRole={profile.role} sp={sp} matchingUserIds={matchingUserIds} />}
+      {tab === "journal" && <JournalTab action={action} actor={actor} sp={sp} matchingUserIds={matchingUserIds} />}
+      {tab === "anomalies" && <AnomaliesTab sp={sp} matchingUserIds={matchingUserIds} />}
+      {tab === "schools" && <SchoolsTab sp={sp} matchingUserIds={matchingUserIds} xCountryId={xCountryId} />}
+      {tab === "payments" && <PaymentsTab sp={sp} matchingUserIds={matchingUserIds} />}
       {tab === "reference-data" && <ReferenceDataTab />}
-      {tab === "sponsored-slots" && <SponsoredSlotsTab sp={sp} />}
-      {tab === "growth" && <GrowthTab sp={sp} />}
+      {tab === "sponsored-slots" && <SponsoredSlotsTab sp={sp} matchingUserIds={matchingUserIds} />}
+      {tab === "growth" && <GrowthTab sp={sp} matchingUserIds={matchingUserIds} />}
     </main>
   );
 }
 
-async function GrowthTab({ sp }: { sp: AdminSearchParams }) {
+async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; matchingUserIds: string[] | null }) {
   const t = await getTranslations("adminGrowth");
   const period = (["day", "week", "month", "year"].includes(sp.gPeriod ?? "") ? sp.gPeriod : "day") as StatsPeriod;
   const supabase = await createClient();
@@ -220,6 +260,16 @@ async function GrowthTab({ sp }: { sp: AdminSearchParams }) {
     docViewsQuery = docViewsQuery.lte("created_at", gTo);
     docDownloadsQuery = docDownloadsQuery.lte("created_at", gTo);
     topicViewsQuery = topicViewsQuery.lte("created_at", gTo);
+  }
+  if (matchingUserIds) {
+    usersQuery = usersQuery.in("id", matchingUserIds);
+    answersQuery = answersQuery.in("author_id", matchingUserIds);
+    votesQuery = votesQuery.in("user_id", matchingUserIds);
+    favoritesQuery = favoritesQuery.in("user_id", matchingUserIds);
+    referralsQuery = referralsQuery.in("id", matchingUserIds);
+    docViewsQuery = docViewsQuery.in("user_id", matchingUserIds);
+    docDownloadsQuery = docDownloadsQuery.in("user_id", matchingUserIds);
+    topicViewsQuery = topicViewsQuery.in("user_id", matchingUserIds);
   }
 
   const [
@@ -319,7 +369,7 @@ async function ReferenceDataTab() {
   );
 }
 
-async function SponsoredSlotsTab({ sp }: { sp: AdminSearchParams }) {
+async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; matchingUserIds: string[] | null }) {
   const t = await getTranslations("adminSponsoredSlots");
   const supabase = await createClient();
   const [{ data: countries }, { data: levels }] = await Promise.all([
@@ -402,12 +452,21 @@ async function SponsoredSlotsTab({ sp }: { sp: AdminSearchParams }) {
         slots={(slots as SponsoredSlotRow[]) ?? []}
         countries={(countries as { id: string; code: string; name: string }[]) ?? []}
         levels={levelOptions}
+        matchingUserIds={matchingUserIds}
       />
     </div>
   );
 }
 
-async function SchoolsTab({ sp }: { sp: AdminSearchParams }) {
+async function SchoolsTab({
+  sp,
+  matchingUserIds,
+  xCountryId,
+}: {
+  sp: AdminSearchParams;
+  matchingUserIds: string[] | null;
+  xCountryId: string | undefined;
+}) {
   const t = await getTranslations("adminSchools");
   const supabase = await createClient();
 
@@ -415,13 +474,17 @@ async function SchoolsTab({ sp }: { sp: AdminSearchParams }) {
   if (sp.sFrom) schoolsQuery = schoolsQuery.gte("created_at", sp.sFrom);
   if (sp.sTo) schoolsQuery = schoolsQuery.lte("created_at", `${sp.sTo}T23:59:59`);
   if (sp.sPlan) schoolsQuery = schoolsQuery.eq("plan", sp.sPlan);
+  if (xCountryId) schoolsQuery = schoolsQuery.eq("country_id", xCountryId);
+
+  let requestsQuery = supabase
+    .from("school_requests")
+    .select("id, school_name, estimated_students, desired_subdomain, created_at, requester:profiles!school_requests_requester_id_fkey(full_name)")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+  if (matchingUserIds) requestsQuery = requestsQuery.in("requester_id", matchingUserIds);
 
   const [{ data: requests }, { data: schools }, { data: memberships }] = await Promise.all([
-    supabase
-      .from("school_requests")
-      .select("id, school_name, estimated_students, desired_subdomain, created_at, requester:profiles!school_requests_requester_id_fkey(full_name)")
-      .eq("status", "pending")
-      .order("created_at", { ascending: true }),
+    requestsQuery,
     schoolsQuery,
     supabase.from("school_memberships").select("school_id"),
   ]);
@@ -475,7 +538,7 @@ async function SchoolsTab({ sp }: { sp: AdminSearchParams }) {
   );
 }
 
-async function PaymentsTab({ sp }: { sp: AdminSearchParams }) {
+async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; matchingUserIds: string[] | null }) {
   const t = await getTranslations("adminPayments");
   const supabase = await createClient();
 
@@ -484,15 +547,23 @@ async function PaymentsTab({ sp }: { sp: AdminSearchParams }) {
   if (sp.pTo) statsQuery = statsQuery.lte("created_at", `${sp.pTo}T23:59:59`);
   if (sp.pMethod) statsQuery = statsQuery.eq("method", sp.pMethod);
   if (sp.pStatus) statsQuery = statsQuery.eq("status", sp.pStatus);
+  if (matchingUserIds) statsQuery = statsQuery.in("user_id", matchingUserIds);
+
+  let pendingQuery = supabase
+    .from("payments")
+    .select("id, purpose, method, amount, currency, external_reference, created_at, user:profiles!payments_user_id_fkey(full_name)")
+    .eq("method", "manual_whatsapp_om")
+    .eq("status", "pending")
+    .order("created_at", { ascending: true });
+  let confirmedQuery = supabase.from("payments").select("amount, currency").eq("status", "confirmed");
+  if (matchingUserIds) {
+    pendingQuery = pendingQuery.in("user_id", matchingUserIds);
+    confirmedQuery = confirmedQuery.in("user_id", matchingUserIds);
+  }
 
   const [{ data: pending }, { data: confirmed }, { data: statsRows }] = await Promise.all([
-    supabase
-      .from("payments")
-      .select("id, purpose, method, amount, currency, external_reference, created_at, user:profiles!payments_user_id_fkey(full_name)")
-      .eq("method", "manual_whatsapp_om")
-      .eq("status", "pending")
-      .order("created_at", { ascending: true }),
-    supabase.from("payments").select("amount, currency").eq("status", "confirmed"),
+    pendingQuery,
+    confirmedQuery,
     statsQuery,
   ]);
 
@@ -577,11 +648,17 @@ async function FeaturesTab() {
   return <FeatureFlagsManager flags={flags} auditLog={(auditLog as unknown as AuditEntry[]) ?? []} />;
 }
 
-async function UsersTab({ viewerRole, sp }: { viewerRole: string; sp: AdminSearchParams }) {
+async function UsersTab({
+  viewerRole,
+  sp,
+  matchingUserIds,
+}: {
+  viewerRole: string;
+  sp: AdminSearchParams;
+  matchingUserIds: string[] | null;
+}) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
-  const { data: countries } = await supabase.from("countries").select("id, code, name").order("name");
-  const countryIdByCode = new Map((countries ?? []).map((c) => [c.code, c.id]));
 
   let query = supabase
     .from("profiles")
@@ -593,7 +670,7 @@ async function UsersTab({ viewerRole, sp }: { viewerRole: string; sp: AdminSearc
   if (sp.uFrom) query = query.gte("created_at", sp.uFrom);
   if (sp.uTo) query = query.lte("created_at", `${sp.uTo}T23:59:59`);
   if (sp.uRole) query = query.eq("role", sp.uRole);
-  if (sp.uCountry && countryIdByCode.has(sp.uCountry)) query = query.eq("country_id", countryIdByCode.get(sp.uCountry));
+  if (matchingUserIds) query = query.in("id", matchingUserIds);
 
   const { data: users } = await query;
   const rows = (users ?? []) as unknown as (AdminUserRow & {
@@ -625,11 +702,6 @@ async function UsersTab({ viewerRole, sp }: { viewerRole: string; sp: AdminSearc
             to={sp.uTo}
             selects={[
               {
-                key: "Country",
-                value: sp.uCountry,
-                options: (countries ?? []).map((c) => ({ value: c.code, label: c.name })),
-              },
-              {
                 key: "Role",
                 value: sp.uRole,
                 options: [
@@ -658,10 +730,12 @@ async function JournalTab({
   action,
   actor,
   sp,
+  matchingUserIds,
 }: {
   action?: string;
   actor?: string;
   sp: AdminSearchParams;
+  matchingUserIds: string[] | null;
 }) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
@@ -671,6 +745,7 @@ async function JournalTab({
   if (actor) statsQuery = statsQuery.eq("actor_id", actor);
   if (sp.jFrom) statsQuery = statsQuery.gte("created_at", sp.jFrom);
   if (sp.jTo) statsQuery = statsQuery.lte("created_at", `${sp.jTo}T23:59:59`);
+  if (matchingUserIds) statsQuery = statsQuery.in("actor_id", matchingUserIds);
   const { data: statsRows } = await statsQuery;
   const rows = statsRows ?? [];
 
@@ -685,12 +760,12 @@ async function JournalTab({
         <StatBarChart title={t("journalByAction")} data={byAction} emptyLabel={t("statsEmpty")} />
         <StatLineChart title={t("journalActionsOverTime")} data={overTime} emptyLabel={t("statsEmpty")} />
       </div>
-      <AdminLogList action={action} actor={actor} from={sp.jFrom} to={sp.jTo} />
+      <AdminLogList action={action} actor={actor} from={sp.jFrom} to={sp.jTo} userIds={matchingUserIds ?? undefined} />
     </div>
   );
 }
 
-async function AnomaliesTab({ sp }: { sp: AdminSearchParams }) {
+async function AnomaliesTab({ sp, matchingUserIds }: { sp: AdminSearchParams; matchingUserIds: string[] | null }) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
 
@@ -698,6 +773,7 @@ async function AnomaliesTab({ sp }: { sp: AdminSearchParams }) {
   if (sp.aStatus) statsQuery = statsQuery.eq("status", sp.aStatus);
   if (sp.aFrom) statsQuery = statsQuery.gte("created_at", sp.aFrom);
   if (sp.aTo) statsQuery = statsQuery.lte("created_at", `${sp.aTo}T23:59:59`);
+  if (matchingUserIds) statsQuery = statsQuery.in("reporter_id", matchingUserIds);
   const { data: statsRows } = await statsQuery;
   const rows = statsRows ?? [];
 
@@ -728,7 +804,7 @@ async function AnomaliesTab({ sp }: { sp: AdminSearchParams }) {
         <StatPieChart title={t("anomaliesByStatus")} data={byStatus} emptyLabel={t("statsEmpty")} />
         <StatLineChart title={t("anomaliesOverTime")} data={overTime} emptyLabel={t("statsEmpty")} />
       </div>
-      <BugReportsList status={sp.aStatus} from={sp.aFrom} to={sp.aTo} />
+      <BugReportsList status={sp.aStatus} from={sp.aFrom} to={sp.aTo} userIds={matchingUserIds ?? undefined} />
     </div>
   );
 }
