@@ -638,5 +638,24 @@
     "impressionsBySlot": "Vues par partenariat",
     "clicksBySlot": "Clics par partenariat",
     "byPlacement": "Répartition par emplacement"
+  },
+  "adminGrowth": {
+    "tabGrowth": "Croissance",
+    "periodLabel": "Regrouper par",
+    "periodDay": "Jour",
+    "periodWeek": "Semaine",
+    "periodMonth": "Mois",
+    "periodYear": "Année",
+    "statsEmpty": "Pas assez de données pour ce filtre.",
+    "newUsers": "Nouveaux utilisateurs ({count})",
+    "newComments": "Nouveaux commentaires ({count})",
+    "newProposals": "Nouvelles propositions ({count})",
+    "newVotes": "Votes ({count})",
+    "newFavorites": "Favoris ajoutés ({count})",
+    "newReferrals": "Parrainages ({count})",
+    "referralActivationRate": "Taux d'activation des parrainages : {rate}%",
+    "documentViews": "Vues de documents ({count})",
+    "documentDownloads": "Téléchargements ({count})",
+    "topicViews": "Vues de sujets forum ({count})"
   }
 }

@@ -3,7 +3,7 @@ import { requireStaff } from "@/src/lib/dal";
 import { getFeatureFlags } from "@/src/lib/feature-flags";
 import { createClient } from "@/src/utils/supabase/server";
 import { Link } from "@/src/i18n/navigation";
-import { countByDay, countBy, sumBy } from "@/src/lib/stats";
+import { countByDay, countBy, sumBy, countByPeriod, type StatsPeriod } from "@/src/lib/stats";
 import { FeatureFlagsManager } from "@/src/components/admin/feature-flags-manager";
 import { UsersTable, type AdminUserRow } from "@/src/components/admin/users-table";
 import { AdminLogList } from "@/src/components/admin/admin-log-list";
@@ -49,6 +49,9 @@ type AdminSearchParams = {
   ptFrom?: string;
   ptTo?: string;
   ptPlacement?: string;
+  gFrom?: string;
+  gTo?: string;
+  gPeriod?: string;
 };
 
 export default async function AdminPage({
@@ -67,6 +70,7 @@ export default async function AdminPage({
   const tAdminPayments = await getTranslations("adminPayments");
   const tAdminReferenceData = await getTranslations("adminReferenceData");
   const tAdminSponsoredSlots = await getTranslations("adminSponsoredSlots");
+  const tAdminGrowth = await getTranslations("adminGrowth");
 
   const supabase = await createClient();
   const [
@@ -157,6 +161,14 @@ export default async function AdminPage({
         >
           {tAdminSponsoredSlots("tabSponsoredSlots")}
         </Link>
+        <Link
+          href="/admin?tab=growth"
+          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
+            tab === "growth" ? "border-accent-blue" : "border-transparent text-neutral-500"
+          }`}
+        >
+          {tAdminGrowth("tabGrowth")}
+        </Link>
       </div>
 
       {tab === "features" && <FeaturesTab />}
@@ -167,7 +179,128 @@ export default async function AdminPage({
       {tab === "payments" && <PaymentsTab sp={sp} />}
       {tab === "reference-data" && <ReferenceDataTab />}
       {tab === "sponsored-slots" && <SponsoredSlotsTab sp={sp} />}
+      {tab === "growth" && <GrowthTab sp={sp} />}
     </main>
+  );
+}
+
+async function GrowthTab({ sp }: { sp: AdminSearchParams }) {
+  const t = await getTranslations("adminGrowth");
+  const period = (["day", "week", "month", "year"].includes(sp.gPeriod ?? "") ? sp.gPeriod : "day") as StatsPeriod;
+  const supabase = await createClient();
+
+  const gFrom = sp.gFrom;
+  const gTo = sp.gTo ? `${sp.gTo}T23:59:59` : undefined;
+
+  let usersQuery = supabase.from("profiles").select("created_at");
+  let answersQuery = supabase.from("forum_answers").select("type, created_at");
+  let votesQuery = supabase.from("votes").select("created_at");
+  let favoritesQuery = supabase.from("favorites").select("created_at");
+  let referralsQuery = supabase.from("profiles").select("created_at, referral_activated_at").not("referred_by", "is", null);
+  let docViewsQuery = supabase.from("content_events").select("created_at").eq("event_type", "document_view");
+  let docDownloadsQuery = supabase.from("content_events").select("created_at").eq("event_type", "document_download");
+  let topicViewsQuery = supabase.from("content_events").select("created_at").eq("event_type", "topic_view");
+
+  if (gFrom) {
+    usersQuery = usersQuery.gte("created_at", gFrom);
+    answersQuery = answersQuery.gte("created_at", gFrom);
+    votesQuery = votesQuery.gte("created_at", gFrom);
+    favoritesQuery = favoritesQuery.gte("created_at", gFrom);
+    referralsQuery = referralsQuery.gte("created_at", gFrom);
+    docViewsQuery = docViewsQuery.gte("created_at", gFrom);
+    docDownloadsQuery = docDownloadsQuery.gte("created_at", gFrom);
+    topicViewsQuery = topicViewsQuery.gte("created_at", gFrom);
+  }
+  if (gTo) {
+    usersQuery = usersQuery.lte("created_at", gTo);
+    answersQuery = answersQuery.lte("created_at", gTo);
+    votesQuery = votesQuery.lte("created_at", gTo);
+    favoritesQuery = favoritesQuery.lte("created_at", gTo);
+    referralsQuery = referralsQuery.lte("created_at", gTo);
+    docViewsQuery = docViewsQuery.lte("created_at", gTo);
+    docDownloadsQuery = docDownloadsQuery.lte("created_at", gTo);
+    topicViewsQuery = topicViewsQuery.lte("created_at", gTo);
+  }
+
+  const [
+    { data: users },
+    { data: answers },
+    { data: votes },
+    { data: favorites },
+    { data: referrals },
+    { data: docViews },
+    { data: docDownloads },
+    { data: topicViews },
+  ] = await Promise.all([
+    usersQuery,
+    answersQuery,
+    votesQuery,
+    favoritesQuery,
+    referralsQuery,
+    docViewsQuery,
+    docDownloadsQuery,
+    topicViewsQuery,
+  ]);
+
+  const comments = (answers ?? []).filter((a) => a.type === "comment");
+  const proposals = (answers ?? []).filter((a) => a.type === "proposal");
+  const referralRows = referrals ?? [];
+  const activatedCount = referralRows.filter((r) => r.referral_activated_at).length;
+  const activationRate = referralRows.length > 0 ? Math.round((activatedCount / referralRows.length) * 100) : 0;
+
+  const bucket = (rows: { created_at: string }[]) => countByPeriod(rows, (r) => r.created_at, period);
+
+  return (
+    <div className="flex flex-col gap-4">
+      <StatsFilterBar
+        tab="growth"
+        paramPrefix="g"
+        from={sp.gFrom}
+        to={sp.gTo}
+        selects={[
+          {
+            key: "Period",
+            value: period,
+            options: [
+              { value: "day", label: t("periodDay") },
+              { value: "week", label: t("periodWeek") },
+              { value: "month", label: t("periodMonth") },
+              { value: "year", label: t("periodYear") },
+            ],
+          },
+        ]}
+      />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <StatLineChart title={t("newUsers", { count: (users ?? []).length })} data={bucket(users ?? [])} emptyLabel={t("statsEmpty")} />
+        <StatLineChart title={t("newComments", { count: comments.length })} data={bucket(comments)} emptyLabel={t("statsEmpty")} />
+        <StatLineChart title={t("newProposals", { count: proposals.length })} data={bucket(proposals)} emptyLabel={t("statsEmpty")} />
+        <StatLineChart title={t("newVotes", { count: (votes ?? []).length })} data={bucket(votes ?? [])} emptyLabel={t("statsEmpty")} />
+        <StatLineChart
+          title={t("newFavorites", { count: (favorites ?? []).length })}
+          data={bucket(favorites ?? [])}
+          emptyLabel={t("statsEmpty")}
+        />
+        <div className="flex flex-col gap-2">
+          <StatLineChart title={t("newReferrals", { count: referralRows.length })} data={bucket(referralRows)} emptyLabel={t("statsEmpty")} />
+          <p className="text-xs text-neutral-500">{t("referralActivationRate", { rate: activationRate })}</p>
+        </div>
+        <StatLineChart
+          title={t("documentViews", { count: (docViews ?? []).length })}
+          data={bucket(docViews ?? [])}
+          emptyLabel={t("statsEmpty")}
+        />
+        <StatLineChart
+          title={t("documentDownloads", { count: (docDownloads ?? []).length })}
+          data={bucket(docDownloads ?? [])}
+          emptyLabel={t("statsEmpty")}
+        />
+        <StatLineChart
+          title={t("topicViews", { count: (topicViews ?? []).length })}
+          data={bucket(topicViews ?? [])}
+          emptyLabel={t("statsEmpty")}
+        />
+      </div>
+    </div>
   );
 }
 

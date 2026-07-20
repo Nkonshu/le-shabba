@@ -638,5 +638,24 @@
     "impressionsBySlot": "Views by partnership",
     "clicksBySlot": "Clicks by partnership",
     "byPlacement": "Breakdown by placement"
+  },
+  "adminGrowth": {
+    "tabGrowth": "Growth",
+    "periodLabel": "Group by",
+    "periodDay": "Day",
+    "periodWeek": "Week",
+    "periodMonth": "Month",
+    "periodYear": "Year",
+    "statsEmpty": "Not enough data for this filter.",
+    "newUsers": "New users ({count})",
+    "newComments": "New comments ({count})",
+    "newProposals": "New proposals ({count})",
+    "newVotes": "Votes ({count})",
+    "newFavorites": "Favorites added ({count})",
+    "newReferrals": "Referrals ({count})",
+    "referralActivationRate": "Referral activation rate: {rate}%",
+    "documentViews": "Document views ({count})",
+    "documentDownloads": "Downloads ({count})",
+    "topicViews": "Forum topic views ({count})"
   }
 }
