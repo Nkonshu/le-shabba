@@ -6,8 +6,29 @@ import { toast } from "sonner";
 import { Trash, Plus, PencilSimple, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { useRouter } from "@/src/i18n/navigation";
 import { createClient } from "@/src/utils/supabase/client";
+import type { SponsoredSlotPlacement } from "@/src/components/ads/sponsored-slot";
 
 type ClickRow = { id: string; clicked_at: string; user: { full_name: string | null } | null };
+
+const PLACEMENTS: SponsoredSlotPlacement[] = [
+  "home_feed",
+  "courses_list",
+  "exams_list",
+  "revision_sheets_list",
+  "forum_list",
+  "document_detail",
+  "topic_detail",
+];
+
+const PLACEMENT_KEY: Record<SponsoredSlotPlacement, string> = {
+  home_feed: "placementHomeFeed",
+  courses_list: "placementCoursesList",
+  exams_list: "placementExamsList",
+  revision_sheets_list: "placementRevisionSheetsList",
+  forum_list: "placementForumList",
+  document_detail: "placementDocumentDetail",
+  topic_detail: "placementTopicDetail",
+};
 
 export type SponsoredSlotRow = {
   id: string;
@@ -16,7 +37,7 @@ export type SponsoredSlotRow = {
   body: string | null;
   link_url: string;
   image_url: string | null;
-  placement: "home_feed" | "subject";
+  placement: SponsoredSlotPlacement;
   subject: string | null;
   country_codes: string[] | null;
   education_level_ids: string[] | null;
@@ -38,7 +59,7 @@ type SlotForm = {
   body: string;
   link_url: string;
   image_url: string;
-  placement: "home_feed" | "subject";
+  placement: SponsoredSlotPlacement;
   subject: string;
   country_codes: string[];
   education_level_ids: string[];
@@ -93,7 +114,7 @@ function formToPayload(form: SlotForm) {
     link_url: form.link_url.trim(),
     image_url: form.image_url.trim() || null,
     placement: form.placement,
-    subject: form.placement === "subject" ? form.subject.trim() || null : null,
+    subject: form.subject.trim() || null,
     country_codes: form.country_codes.length ? form.country_codes : null,
     education_level_ids: form.education_level_ids.length ? form.education_level_ids : null,
     languages: form.languages.length ? form.languages : null,
@@ -225,7 +246,8 @@ export function SponsoredSlotsManager({
               <div className="flex flex-col">
                 <span className="font-medium">{slot.title}</span>
                 <span className="text-xs text-neutral-400">
-                  {slot.partner_name} · {slot.placement === "subject" ? slot.subject : t("placementHomeFeed")}
+                  {slot.partner_name} · {t(PLACEMENT_KEY[slot.placement])}
+                  {slot.subject ? ` (${slot.subject})` : ""}
                 </span>
               </div>
               <div className="flex items-center gap-1">
@@ -378,20 +400,21 @@ function SlotFormFields({
       <div className="flex gap-2">
         <select
           value={form.placement}
-          onChange={(e) => setForm({ ...form, placement: e.target.value as "home_feed" | "subject" })}
+          onChange={(e) => setForm({ ...form, placement: e.target.value as SponsoredSlotPlacement })}
           className={inputClass}
         >
-          <option value="home_feed">{t("placementHomeFeed")}</option>
-          <option value="subject">{t("placementSubject")}</option>
+          {PLACEMENTS.map((p) => (
+            <option key={p} value={p}>
+              {t(PLACEMENT_KEY[p])}
+            </option>
+          ))}
         </select>
-        {form.placement === "subject" && (
-          <input
-            value={form.subject}
-            onChange={(e) => setForm({ ...form, subject: e.target.value })}
-            placeholder={t("subjectPlaceholder")}
-            className={inputClass}
-          />
-        )}
+        <input
+          value={form.subject}
+          onChange={(e) => setForm({ ...form, subject: e.target.value })}
+          placeholder={t("subjectPlaceholder")}
+          className={inputClass}
+        />
       </div>
 
       <div className="flex flex-col gap-2 rounded-lg bg-neutral-50 p-3 dark:bg-neutral-950">

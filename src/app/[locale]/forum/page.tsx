@@ -1,15 +1,17 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentUser } from "@/src/lib/dal";
 import { AuthGatedLink } from "@/src/components/auth/auth-gated-link";
 import { TopicCard, type TopicCardData } from "@/src/components/forum/topic-card";
 import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
 import { getHotNetworkItems } from "@/src/lib/hot-network";
+import { SponsoredSlot } from "@/src/components/ads/sponsored-slot";
 
 export default async function ForumPage() {
   const t = await getTranslations("forum");
   const supabase = await createClient();
   const user = await getCurrentUser();
+  const locale = await getLocale();
 
   const startOfDay = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
   const [{ count: questionsToday }, { count: answersToday }, { count: votesToday }, { count: totalQuestions }, hotItems] =
@@ -79,6 +81,7 @@ export default async function ForumPage() {
           </p>
         ) : (
           <div className="flex flex-col gap-3">
+            <SponsoredSlot placement="forum_list" locale={locale} />
             {(topics ?? []).map((topic) => {
               const answersCount = Array.isArray(topic.forum_answers)
                 ? ((topic.forum_answers[0] as unknown as { count: number } | undefined)?.count ?? 0)

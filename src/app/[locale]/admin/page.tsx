@@ -509,7 +509,12 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
                 value: sp.ptPlacement,
                 options: [
                   { value: "home_feed", label: t("placementHomeFeed") },
-                  { value: "subject", label: t("placementSubject") },
+                  { value: "courses_list", label: t("placementCoursesList") },
+                  { value: "exams_list", label: t("placementExamsList") },
+                  { value: "revision_sheets_list", label: t("placementRevisionSheetsList") },
+                  { value: "forum_list", label: t("placementForumList") },
+                  { value: "document_detail", label: t("placementDocumentDetail") },
+                  { value: "topic_detail", label: t("placementTopicDetail") },
                 ],
               },
             ]}

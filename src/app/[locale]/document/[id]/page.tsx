@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentProfile, getCurrentUser } from "@/src/lib/dal";
 import { Link } from "@/src/i18n/navigation";
@@ -13,6 +13,7 @@ import { ShareButton } from "@/src/components/share/share-button";
 import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
 import { getHotNetworkItems } from "@/src/lib/hot-network";
 import { StatsPanel } from "@/src/components/interactions/stats-panel";
+import { SponsoredSlot } from "@/src/components/ads/sponsored-slot";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -46,6 +47,7 @@ export default async function DocumentPage({
   const { id } = await params;
   const t = await getTranslations("library");
   const ti = await getTranslations("interactions");
+  const locale = await getLocale();
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
   const isStaff = Boolean(profile && ["admin", "super_admin"].includes(profile.role));
@@ -192,6 +194,8 @@ export default async function DocumentPage({
           />
         </div>
       </div>
+
+      <SponsoredSlot placement="document_detail" locale={locale} subject={doc.subject} />
     </main>
 
     <aside className="flex flex-col gap-4 lg:w-72 lg:shrink-0 lg:border-l lg:border-neutral-100 lg:pl-6 dark:lg:border-neutral-900">

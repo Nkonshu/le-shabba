@@ -11,12 +11,21 @@ type SponsoredSlotData = {
   image_url: string | null;
 };
 
+export type SponsoredSlotPlacement =
+  | "home_feed"
+  | "courses_list"
+  | "exams_list"
+  | "revision_sheets_list"
+  | "forum_list"
+  | "document_detail"
+  | "topic_detail";
+
 export async function SponsoredSlot({
   placement,
   locale,
   subject,
 }: {
-  placement: "home_feed" | "subject";
+  placement: SponsoredSlotPlacement;
   locale: string;
   subject?: string;
 }) {

@@ -1,5 +1,5 @@
 import { CaretLeft } from "@phosphor-icons/react/dist/ssr";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentProfile, getCurrentUser } from "@/src/lib/dal";
 import { isCurrentlyBanned } from "@/src/lib/profile";
@@ -7,11 +7,18 @@ import { Link } from "@/src/i18n/navigation";
 import { AuthGatedLink } from "@/src/components/auth/auth-gated-link";
 import { SelectionCard } from "@/src/components/library/selection-card";
 import { DocumentCard, type DocumentCardData } from "@/src/components/library/document-card";
+import { SponsoredSlot, type SponsoredSlotPlacement } from "@/src/components/ads/sponsored-slot";
 
 const STATUS_RANK: Record<string, number> = {
   staff_verified: 0,
   community_verified: 1,
   unverified: 2,
+};
+
+const PLACEMENT_BY_TYPE: Record<string, SponsoredSlotPlacement> = {
+  Cours: "courses_list",
+  Épreuve: "exams_list",
+  "Fiche de révision": "revision_sheets_list",
 };
 
 export async function DocumentLibrary({
@@ -137,6 +144,7 @@ export async function DocumentLibrary({
   );
 
   const user = await getCurrentUser();
+  const locale = await getLocale();
   const voteByDoc = new Map<string, 1 | -1>();
   const favoritedDocs = new Set<string>();
 
@@ -171,6 +179,7 @@ export async function DocumentLibrary({
         <EmptyState text={t("emptyDocuments")} />
       ) : (
         <div className="flex flex-col gap-3">
+          <SponsoredSlot placement={PLACEMENT_BY_TYPE[documentType] ?? "courses_list"} locale={locale} subject={subject} />
           {sorted.map((doc) => (
             <DocumentCard
               key={doc.id}

@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentProfile, getCurrentUser } from "@/src/lib/dal";
 import { VoteArrows } from "@/src/components/interactions/vote-arrows";
@@ -15,6 +15,7 @@ import { StatsPanel } from "@/src/components/interactions/stats-panel";
 import { AttachmentLink } from "@/src/components/interactions/attachment-link";
 import { TopicManageButtons } from "@/src/components/forum/topic-manage-buttons";
 import { SafeHtml } from "@/src/components/forum/safe-html";
+import { SponsoredSlot } from "@/src/components/ads/sponsored-slot";
 import type { AnswerData } from "@/src/components/forum/answer-card";
 import type { Metadata } from "next";
 
@@ -49,6 +50,7 @@ export default async function TopicPage({
   const { id } = await params;
   const t = await getTranslations("forum");
   const ti = await getTranslations("interactions");
+  const locale = await getLocale();
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
   const isStaff = Boolean(profile && ["admin", "super_admin"].includes(profile.role));
@@ -239,6 +241,8 @@ export default async function TopicPage({
         isStaff={isStaff}
         canReport={canReport}
       />
+
+      <SponsoredSlot placement="topic_detail" locale={locale} subject={topic.subject} />
     </main>
 
     <aside className="flex flex-col gap-4 lg:w-72 lg:shrink-0 lg:border-l lg:border-neutral-100 lg:pl-6 dark:lg:border-neutral-900">
