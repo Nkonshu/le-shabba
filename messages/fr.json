@@ -126,6 +126,18 @@
     "unknownActor": "quelqu'un",
     "toggleSaved": "Fonctionnalité mise à jour",
     "toggleError": "Impossible de modifier cette fonctionnalité, réessaie.",
+    "statsFrom": "Depuis",
+    "statsTo": "Jusqu'à",
+    "statsResetFilters": "Réinitialiser les filtres",
+    "statsExportExcel": "Exporter en Excel",
+    "statsEmpty": "Pas assez de données pour ce filtre.",
+    "usersSignupsOverTime": "Inscriptions dans le temps",
+    "usersByCountry": "Répartition par pays",
+    "usersByRole": "Répartition par rôle",
+    "journalActionsOverTime": "Actions dans le temps",
+    "journalByAction": "Répartition par type d'action",
+    "anomaliesOverTime": "Signalements dans le temps",
+    "anomaliesByStatus": "Répartition par statut",
     "statDocuments": "Documents",
     "statUsers": "Utilisateurs",
     "statTopics": "Discussions",
@@ -535,7 +547,11 @@
     "estimatedStudents": "{count} élèves estimés",
     "approveSuccess": "École créée.",
     "rejectSuccess": "Demande rejetée.",
-    "actionError": "Action impossible, réessaie."
+    "actionError": "Action impossible, réessaie.",
+    "statsEmpty": "Pas assez de données pour ce filtre.",
+    "schoolsByPlan": "Répartition par forfait",
+    "schoolsTopByMembers": "Écoles les plus actives (membres)",
+    "schoolsOverTime": "Créations d'écoles dans le temps"
   },
   "payments": {
     "choosePaymentTitle": "Choisir un moyen de paiement",
@@ -565,7 +581,11 @@
     "reject": "Rejeter",
     "revenueTitle": "Revenus confirmés",
     "actionSaved": "Action effectuée.",
-    "actionError": "Action impossible, réessaie."
+    "actionError": "Action impossible, réessaie.",
+    "statsEmpty": "Pas assez de données pour ce filtre.",
+    "revenueByMethod": "Revenus par méthode",
+    "revenueOverTime": "Paiements confirmés dans le temps",
+    "statusBreakdown": "Répartition par statut"
   },
   "adminReferenceData": {
     "tabReferenceData": "Listes de référence",
@@ -613,6 +633,10 @@
     "confirmDelete": "Supprimer ce partenariat ?",
     "saved": "Modifications enregistrées.",
     "saveError": "Impossible d'enregistrer, réessaie.",
-    "empty": "Aucun partenariat pour l'instant."
+    "empty": "Aucun partenariat pour l'instant.",
+    "statsEmpty": "Pas assez de données pour ce filtre.",
+    "impressionsBySlot": "Vues par partenariat",
+    "clicksBySlot": "Clics par partenariat",
+    "byPlacement": "Répartition par emplacement"
   }
 }

@@ -12,7 +12,17 @@ type LogRow = {
   actor: { id: string; full_name: string | null; avatar_url: string | null } | null;
 };
 
-export async function AdminLogList({ action, actor }: { action?: string; actor?: string }) {
+export async function AdminLogList({
+  action,
+  actor,
+  from,
+  to,
+}: {
+  action?: string;
+  actor?: string;
+  from?: string;
+  to?: string;
+}) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
 
@@ -24,6 +34,8 @@ export async function AdminLogList({ action, actor }: { action?: string; actor?:
 
   if (action) query = query.eq("action", action);
   if (actor) query = query.eq("actor_id", actor);
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lte("created_at", `${to}T23:59:59`);
 
   const { data: entries } = await query;
   const rows = (entries ?? []) as unknown as LogRow[];

@@ -126,6 +126,18 @@
     "unknownActor": "someone",
     "toggleSaved": "Feature updated",
     "toggleError": "Couldn't update this feature, please try again.",
+    "statsFrom": "From",
+    "statsTo": "To",
+    "statsResetFilters": "Reset filters",
+    "statsExportExcel": "Export to Excel",
+    "statsEmpty": "Not enough data for this filter.",
+    "usersSignupsOverTime": "Signups over time",
+    "usersByCountry": "Breakdown by country",
+    "usersByRole": "Breakdown by role",
+    "journalActionsOverTime": "Actions over time",
+    "journalByAction": "Breakdown by action type",
+    "anomaliesOverTime": "Reports over time",
+    "anomaliesByStatus": "Breakdown by status",
     "statDocuments": "Documents",
     "statUsers": "Users",
     "statTopics": "Discussions",
@@ -535,7 +547,11 @@
     "estimatedStudents": "{count} estimated students",
     "approveSuccess": "School created.",
     "rejectSuccess": "Request rejected.",
-    "actionError": "Couldn't complete this action, please try again."
+    "actionError": "Couldn't complete this action, please try again.",
+    "statsEmpty": "Not enough data for this filter.",
+    "schoolsByPlan": "Breakdown by plan",
+    "schoolsTopByMembers": "Most active schools (members)",
+    "schoolsOverTime": "Schools created over time"
   },
   "payments": {
     "choosePaymentTitle": "Choose a payment method",
@@ -565,7 +581,11 @@
     "reject": "Reject",
     "revenueTitle": "Confirmed revenue",
     "actionSaved": "Action completed.",
-    "actionError": "Couldn't complete this action, please try again."
+    "actionError": "Couldn't complete this action, please try again.",
+    "statsEmpty": "Not enough data for this filter.",
+    "revenueByMethod": "Revenue by method",
+    "revenueOverTime": "Confirmed payments over time",
+    "statusBreakdown": "Breakdown by status"
   },
   "adminReferenceData": {
     "tabReferenceData": "Reference data",
@@ -613,6 +633,10 @@
     "confirmDelete": "Delete this partnership?",
     "saved": "Changes saved.",
     "saveError": "Couldn't save, please try again.",
-    "empty": "No partnership yet."
+    "empty": "No partnership yet.",
+    "statsEmpty": "Not enough data for this filter.",
+    "impressionsBySlot": "Views by partnership",
+    "clicksBySlot": "Clicks by partnership",
+    "byPlacement": "Breakdown by placement"
   }
 }

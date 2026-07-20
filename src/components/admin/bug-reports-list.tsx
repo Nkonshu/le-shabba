@@ -15,17 +15,31 @@ type BugReport = {
   reporter: { full_name: string | null } | null;
 };
 
-export async function BugReportsList() {
+export async function BugReportsList({
+  status,
+  from,
+  to,
+}: {
+  status?: string;
+  from?: string;
+  to?: string;
+} = {}) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
 
-  const { data: reports } = await supabase
+  let query = supabase
     .from("bug_reports")
     .select(
       "id, reporter_id, contact_email, description, page_url, device_info, screenshot_url, status, created_at, reporter:profiles(full_name)"
     )
     .order("created_at", { ascending: false })
     .limit(50);
+
+  if (status) query = query.eq("status", status);
+  if (from) query = query.gte("created_at", from);
+  if (to) query = query.lte("created_at", `${to}T23:59:59`);
+
+  const { data: reports } = await query;
 
   const rows = (reports ?? []) as unknown as BugReport[];
 
