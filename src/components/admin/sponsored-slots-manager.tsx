@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { Trash, Plus, PencilSimple } from "@phosphor-icons/react";
+import { Trash, Plus, PencilSimple, CaretDown, CaretUp } from "@phosphor-icons/react";
 import { useRouter } from "@/src/i18n/navigation";
 import { createClient } from "@/src/utils/supabase/client";
+
+type ClickRow = { id: string; clicked_at: string; user: { full_name: string | null } | null };
 
 export type SponsoredSlotRow = {
   id: string;
@@ -120,6 +122,31 @@ export function SponsoredSlotsManager({
   const [newForm, setNewForm] = useState<SlotForm>(EMPTY_FORM);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<SlotForm>(EMPTY_FORM);
+  const [expandedClicksId, setExpandedClicksId] = useState<string | null>(null);
+  const [clicksBySlot, setClicksBySlot] = useState<Record<string, ClickRow[]>>({});
+  const [loadingClicks, setLoadingClicks] = useState(false);
+
+  async function toggleClicks(slotId: string) {
+    if (expandedClicksId === slotId) {
+      setExpandedClicksId(null);
+      return;
+    }
+    setExpandedClicksId(slotId);
+    if (clicksBySlot[slotId]) return;
+    setLoadingClicks(true);
+    const { data, error } = await supabase
+      .from("sponsored_slot_clicks")
+      .select("id, clicked_at, user:profiles(full_name)")
+      .eq("slot_id", slotId)
+      .order("clicked_at", { ascending: false })
+      .limit(50);
+    setLoadingClicks(false);
+    if (error) {
+      toast.error(t("saveError"));
+      return;
+    }
+    setClicksBySlot((prev) => ({ ...prev, [slotId]: (data as unknown as ClickRow[]) ?? [] }));
+  }
 
   async function createSlot() {
     if (!newForm.partner_name.trim() || !newForm.title.trim() || !newForm.link_url.trim()) return;
@@ -219,10 +246,33 @@ export function SponsoredSlotsManager({
                 </button>
               </div>
             </div>
-            <div className="flex gap-3 text-[10px] text-neutral-400">
+            <div className="flex items-center gap-3 text-[10px] text-neutral-400">
               <span>{t("impressionsCount", { count: slot.impressions_count })}</span>
-              <span>{t("clicksCount", { count: slot.clicks_count })}</span>
+              <button
+                onClick={() => toggleClicks(slot.id)}
+                className="flex items-center gap-1 text-accent-blue hover:underline"
+              >
+                {t("clicksCount", { count: slot.clicks_count })}
+                {expandedClicksId === slot.id ? <CaretUp size={10} /> : <CaretDown size={10} />}
+              </button>
             </div>
+
+            {expandedClicksId === slot.id && (
+              <div className="flex flex-col gap-1 rounded-lg bg-neutral-50 p-2 dark:bg-neutral-950">
+                {loadingClicks && !clicksBySlot[slot.id] ? (
+                  <span className="text-[11px] text-neutral-400">{tc("loading")}</span>
+                ) : (clicksBySlot[slot.id] ?? []).length === 0 ? (
+                  <span className="text-[11px] text-neutral-400">{t("noClicks")}</span>
+                ) : (
+                  (clicksBySlot[slot.id] ?? []).map((click) => (
+                    <div key={click.id} className="flex items-center justify-between text-[11px]">
+                      <span>{click.user?.full_name ?? t("anonymousClick")}</span>
+                      <span className="text-neutral-400">{new Date(click.clicked_at).toLocaleString()}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         )
       )}

@@ -608,6 +608,8 @@
     "activeLabel": "Actif",
     "impressionsCount": "{count} vues",
     "clicksCount": "{count} clics",
+    "noClicks": "Aucun clic pour l'instant.",
+    "anonymousClick": "Visiteur non connecté",
     "confirmDelete": "Supprimer ce partenariat ?",
     "saved": "Modifications enregistrées.",
     "saveError": "Impossible d'enregistrer, réessaie.",

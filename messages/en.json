@@ -608,6 +608,8 @@
     "activeLabel": "Active",
     "impressionsCount": "{count} views",
     "clicksCount": "{count} clicks",
+    "noClicks": "No clicks yet.",
+    "anonymousClick": "Signed-out visitor",
     "confirmDelete": "Delete this partnership?",
     "saved": "Changes saved.",
     "saveError": "Couldn't save, please try again.",
