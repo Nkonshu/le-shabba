@@ -494,6 +494,17 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
     country_code: (l.country as unknown as { code: string } | null)?.code ?? "",
   }));
 
+  // Pas de table "matières" dédiée (contrairement à pays/niveaux) — la matière n'est qu'un champ
+  // texte libre sur documents/forum_topics. Liste dynamique = celles réellement utilisées, agrégée
+  // en mémoire plutôt qu'un SELECT DISTINCT (volumes modestes, même logique que le reste du dashboard).
+  const [{ data: docSubjects }, { data: topicSubjects }] = await Promise.all([
+    supabase.from("documents").select("subject"),
+    supabase.from("forum_topics").select("subject"),
+  ]);
+  const subjects = [...new Set([...(docSubjects ?? []).map((d) => d.subject), ...(topicSubjects ?? []).map((t2) => t2.subject)])].sort(
+    (a, b) => a.localeCompare(b)
+  );
+
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3">
@@ -550,6 +561,7 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
         slots={(slots as SponsoredSlotRow[]) ?? []}
         countries={(countries as { id: string; code: string; name: string }[]) ?? []}
         levels={levelOptions}
+        subjects={subjects}
         matchingUserIds={matchingUserIds}
       />
     </div>

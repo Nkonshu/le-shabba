@@ -629,7 +629,7 @@
     "placementForumList": "Liste des sujets du forum",
     "placementDocumentDetail": "Détail d'un document",
     "placementTopicDetail": "Détail d'un sujet de forum",
-    "subjectPlaceholder": "Matière (optionnel, ex. Chimie — laisser vide = toutes)",
+    "subjectAllOption": "Toutes les matières",
     "targetingTitle": "Qui verra cette annonce",
     "countriesLabel": "Pays (aucun coché = tous)",
     "levelsLabel": "Niveaux (aucun coché = tous)",

@@ -629,7 +629,7 @@
     "placementForumList": "Forum topics list",
     "placementDocumentDetail": "Document detail page",
     "placementTopicDetail": "Forum topic detail page",
-    "subjectPlaceholder": "Subject (optional, e.g. Chemistry — leave blank = all)",
+    "subjectAllOption": "All subjects",
     "targetingTitle": "Who will see this ad",
     "countriesLabel": "Countries (none checked = all)",
     "levelsLabel": "Levels (none checked = all)",

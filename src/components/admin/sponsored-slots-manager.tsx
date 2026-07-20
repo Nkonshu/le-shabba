@@ -129,11 +129,13 @@ export function SponsoredSlotsManager({
   slots,
   countries,
   levels,
+  subjects,
   matchingUserIds,
 }: {
   slots: SponsoredSlotRow[];
   countries: CountryOption[];
   levels: LevelOption[];
+  subjects: string[];
   matchingUserIds: string[] | null;
 }) {
   const t = useTranslations("adminSponsoredSlots");
@@ -235,6 +237,7 @@ export function SponsoredSlotsManager({
             setForm={setEditForm}
             countries={countries}
             levels={levels}
+            subjects={subjects}
             t={t}
             tc={tc}
             onSave={() => saveEdit(slot.id)}
@@ -315,6 +318,7 @@ export function SponsoredSlotsManager({
           setForm={setNewForm}
           countries={countries}
           levels={levels}
+          subjects={subjects}
           t={t}
           tc={tc}
           onSave={createSlot}
@@ -341,6 +345,7 @@ function SlotFormFields({
   setForm,
   countries,
   levels,
+  subjects,
   t,
   tc,
   onSave,
@@ -350,6 +355,7 @@ function SlotFormFields({
   setForm: (form: SlotForm) => void;
   countries: CountryOption[];
   levels: LevelOption[];
+  subjects: string[];
   t: ReturnType<typeof useTranslations>;
   tc: ReturnType<typeof useTranslations>;
   onSave: () => void;
@@ -409,12 +415,14 @@ function SlotFormFields({
             </option>
           ))}
         </select>
-        <input
-          value={form.subject}
-          onChange={(e) => setForm({ ...form, subject: e.target.value })}
-          placeholder={t("subjectPlaceholder")}
-          className={inputClass}
-        />
+        <select value={form.subject} onChange={(e) => setForm({ ...form, subject: e.target.value })} className={inputClass}>
+          <option value="">{t("subjectAllOption")}</option>
+          {subjects.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex flex-col gap-2 rounded-lg bg-neutral-50 p-3 dark:bg-neutral-950">
