@@ -32,7 +32,16 @@ export async function getMembership(schoolId: string, userId: string): Promise<S
     .eq("school_id", schoolId)
     .eq("user_id", userId)
     .maybeSingle();
-  return data as SchoolMembership | null;
+  if (data) return data as SchoolMembership;
+
+  // Le staff plateforme (admin/super_admin) a accès à toute école sans y être formellement membre —
+  // même principe que requireStaff ailleurs dans l'app : le rôle plateforme prime toujours sur
+  // l'appartenance à une école précise, pour le support/la modération d'urgence (§4.9 du document).
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", userId).maybeSingle();
+  if (profile && ["admin", "super_admin"].includes(profile.role)) {
+    return { role: "school_admin", permissions: { documents: true, forum: true } };
+  }
+  return null;
 }
 
 export function canModerate(membership: SchoolMembership | null, key: "documents" | "forum") {
