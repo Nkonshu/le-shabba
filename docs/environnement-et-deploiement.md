@@ -313,3 +313,73 @@ Ceci ne couvre que la perte du **PC de développement**. Pour le scénario diff�
 **VPS lui-même** qui tombe en panne (matériel du serveur), voir la section "Maintenance,
 sauvegardes & migration de serveur" de `le-shabba-conception-v2.md` (sauvegardes base de données +
 fichiers, runbook de changement de serveur).
+
+---
+
+## 6. Migration vers un nouveau fournisseur VPS et un nouveau nom de domaine (sans coupure ni perte de données)
+
+**Pourquoi cette section existe :** la section "Maintenance, sauvegardes & migration de serveur" de
+`le-shabba-conception-v2.md` couvre déjà "changer de serveur", mais suppose implicitement qu'on
+garde le même domaine (juste une bascule DNS). Ce scénario-ci est plus exigeant : changer de
+fournisseur VPS **et** de nom de domaine **en même temps**, alors que le site tourne à plein régime
+avec de vrais utilisateurs — donc deux systèmes externes à faire coexister pendant la transition
+(OAuth Google, DNS) plutôt qu'un seul.
+
+### Phase 1 — Préparation (zéro impact sur le site actuel)
+
+1. **Nouveau VPS chez le nouveau fournisseur** : réinstaller toute la pile en parallèle de
+   l'existant (clé SSH, Coolify, Tailscale, Supabase self-hosted, Meilisearch), mais **sans rien
+   exposer publiquement encore** — uniquement accessible via Tailscale pendant la préparation.
+2. **Réserver le nouveau nom de domaine**, l'ajouter à Cloudflare (ou au DNS choisi) **en plus** de
+   l'ancien — les deux coexistent, rien n'est coupé côté visiteurs actuels.
+3. **Google Cloud Console → écran de consentement OAuth** : ajouter le nouveau domaine aux
+   "Authorized redirect URIs" / "Authorized JavaScript origins", **sans retirer l'ancien** — les
+   deux domaines doivent fonctionner en même temps pendant toute la transition, sinon la connexion
+   Google casse d'un coup pour tout le monde le jour de la bascule.
+4. Préparer (sans les déployer) les nouvelles variables d'environnement (`NEXT_PUBLIC_SITE_URL`,
+   `NEXT_PUBLIC_SUPABASE_URL`, etc.) pointant vers le nouveau domaine/serveur. Point de vigilance
+   particulier : c'est exactement le genre de variable dont un mauvais réglage a déjà causé un bug
+   réel sur ce projet (callback OAuth redirigeant vers `localhost:3000` en production au lieu du
+   domaine public) — à re-tester avec la même rigueur.
+
+### Phase 2 — Test à blanc (toujours zéro impact)
+
+5. Sur le nouveau VPS : restaurer un dump récent (pas besoin du tout dernier) de la base + des
+   fichiers, déployer l'application avec les nouvelles variables, tester réellement (connexion,
+   upload, recherche) sur le nouveau domaine.
+6. Vérifier que la connexion Google fonctionne avec le nouveau domaine, avec un compte de test —
+   c'est le point qui casse le plus souvent silencieusement dans ce genre de bascule.
+
+### Phase 3 — Bascule (la seule vraie fenêtre sensible, à minimiser)
+
+Deux niveaux d'exigence possibles :
+
+- **Option pragmatique (recommandée à l'échelle de ce projet)** : une coupure courte de quelques
+  minutes en lecture seule (bandeau "maintenance en cours"), le temps de faire un dump final et de
+  le restaurer sur le nouveau serveur — garantit zéro perte, coupure minime mais réelle.
+- **Option zéro-coupure stricte** : mise en place d'une réplication logique Postgres (le nouveau
+  serveur reste synchronisé en continu avec l'ancien jusqu'à l'instant précis de la bascule) —
+  possible mais nettement plus complexe à mettre en place correctement, disproportionné vu la taille
+  de l'équipe visée.
+
+Avec l'option pragmatique :
+
+7. Basculer le site actuel en lecture seule (bandeau, quelques minutes).
+8. Dump final de la base + synchronisation finale des fichiers vers le nouveau serveur.
+9. Restaurer ce dump sur le nouveau VPS, réindexer Meilisearch avec les données fraîches (l'index
+   Meilisearch ne se sauvegarde jamais, il se reconstruit toujours par ré-indexation complète).
+10. Le nouveau domaine (déjà en place depuis la Phase 1) pointe maintenant vers un serveur avec des
+    données à jour — le rendre public.
+11. Sur **l'ancien domaine** : au lieu de le couper, configurer une **redirection 301 permanente**
+    vers le nouveau domaine — les visiteurs qui ont l'ancien lien en favori, les moteurs de
+    recherche, les liens externes ne tombent pas dans le vide.
+12. Réactiver l'écriture, uniquement sur le nouveau serveur.
+
+### Phase 4 — Après bascule
+
+13. Garder l'ancien VPS actif un moment — au moins 30 jours (plus long qu'un simple changement de
+    serveur, car ici il faut aussi laisser le temps à la redirection de domaine de faire son travail
+    auprès des utilisateurs et moteurs de recherche).
+14. Mettre à jour toute la documentation du projet (IP, domaine, fournisseur) dans ce document et
+    dans `le-shabba-conception-v2.md` — sinon les prochains runbooks pointent vers du faux.
+15. Résilier l'ancien VPS seulement après cette fenêtre de sécurité.
