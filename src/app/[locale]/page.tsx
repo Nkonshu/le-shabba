@@ -1,10 +1,11 @@
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { getCurrentProfile, getCurrentUser } from "@/src/lib/dal";
 import { DocumentCard, type DocumentCardData } from "@/src/components/library/document-card";
 import { TopicCard, type TopicCardData } from "@/src/components/forum/topic-card";
 import { ActivitySidebar } from "@/src/components/home/activity-sidebar";
 import { MyProgressCard } from "@/src/components/reputation/my-progress-card";
+import { SponsoredSlot } from "@/src/components/ads/sponsored-slot";
 
 const DOC_SELECT =
   "id, title, type, status, subject, year, votes_count, views_count, favorites_count, downloads_count, created_at, related_document_id, level:education_levels(label), country:countries(code), related_document:documents!related_document_id(title, type)";
@@ -25,6 +26,7 @@ function enrichTopics(rows: unknown[], solvedSet: Set<string>): TopicCardData[] 
 
 export default async function HomePage() {
   const t = await getTranslations("home");
+  const locale = await getLocale();
   const supabase = await createClient();
   const user = await getCurrentUser();
   const profile = await getCurrentProfile();
@@ -98,6 +100,8 @@ export default async function HomePage() {
             ))
           )}
         </Section>
+
+        <SponsoredSlot placement="home_feed" locale={locale} />
 
         <Section title={t("hotTopics")}>
           {hotTopics.length === 0 ? (

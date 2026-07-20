@@ -582,5 +582,35 @@
     "saved": "Modifications enregistrées.",
     "saveError": "Impossible d'enregistrer, réessaie.",
     "deleteBlocked": "Impossible de supprimer : encore utilisé ailleurs sur la plateforme."
+  },
+  "ads": {
+    "sponsoredLabel": "Sponsorisé"
+  },
+  "adminSponsoredSlots": {
+    "tabSponsoredSlots": "Partenariats",
+    "addSlot": "Ajouter un partenariat",
+    "partnerNamePlaceholder": "Nom du partenaire",
+    "titlePlaceholder": "Titre affiché",
+    "bodyPlaceholder": "Texte court (optionnel)",
+    "linkUrlPlaceholder": "Lien de destination (https://...)",
+    "imageUrlPlaceholder": "URL du logo (optionnel)",
+    "placementLabel": "Emplacement",
+    "placementHomeFeed": "Fil d'accueil",
+    "placementSubject": "Une matière précise",
+    "subjectPlaceholder": "Matière (ex. Chimie)",
+    "targetingTitle": "Qui verra cette annonce",
+    "countriesLabel": "Pays (aucun coché = tous)",
+    "levelsLabel": "Niveaux (aucun coché = tous)",
+    "languagesLabel": "Langue (aucune cochée = toutes)",
+    "minPointsPlaceholder": "Points minimum (optionnel)",
+    "startsAtLabel": "Début (optionnel)",
+    "endsAtLabel": "Fin (optionnel)",
+    "activeLabel": "Actif",
+    "impressionsCount": "{count} vues",
+    "clicksCount": "{count} clics",
+    "confirmDelete": "Supprimer ce partenariat ?",
+    "saved": "Modifications enregistrées.",
+    "saveError": "Impossible d'enregistrer, réessaie.",
+    "empty": "Aucun partenariat pour l'instant."
   }
 }

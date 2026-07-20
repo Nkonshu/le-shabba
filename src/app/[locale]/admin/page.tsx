@@ -11,6 +11,7 @@ import { BugReportsList } from "@/src/components/admin/bug-reports-list";
 import { SchoolRequestsList, type SchoolRequestRow, type SchoolRow } from "@/src/components/admin/school-requests-list";
 import { PaymentsAdminList, type AdminPaymentRow } from "@/src/components/admin/payments-admin-list";
 import { ReferenceDataManager, type CountryRow, type LevelRow } from "@/src/components/admin/reference-data-manager";
+import { SponsoredSlotsManager, type SponsoredSlotRow } from "@/src/components/admin/sponsored-slots-manager";
 
 type AuditEntry = {
   id: string;
@@ -35,6 +36,7 @@ export default async function AdminPage({
   const tAdminSchools = await getTranslations("adminSchools");
   const tAdminPayments = await getTranslations("adminPayments");
   const tAdminReferenceData = await getTranslations("adminReferenceData");
+  const tAdminSponsoredSlots = await getTranslations("adminSponsoredSlots");
 
   const supabase = await createClient();
   const [
@@ -117,6 +119,14 @@ export default async function AdminPage({
         >
           {tAdminReferenceData("tabReferenceData")}
         </Link>
+        <Link
+          href="/admin?tab=sponsored-slots"
+          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
+            tab === "sponsored-slots" ? "border-accent-blue" : "border-transparent text-neutral-500"
+          }`}
+        >
+          {tAdminSponsoredSlots("tabSponsoredSlots")}
+        </Link>
       </div>
 
       {tab === "features" && (
@@ -137,6 +147,7 @@ export default async function AdminPage({
       {tab === "schools" && <SchoolsTab />}
       {tab === "payments" && <PaymentsTab />}
       {tab === "reference-data" && <ReferenceDataTab />}
+      {tab === "sponsored-slots" && <SponsoredSlotsTab />}
     </main>
   );
 }
@@ -152,6 +163,29 @@ async function ReferenceDataTab() {
     <ReferenceDataManager
       countries={(countries as CountryRow[]) ?? []}
       levels={(levels as LevelRow[]) ?? []}
+    />
+  );
+}
+
+async function SponsoredSlotsTab() {
+  const supabase = await createClient();
+  const [{ data: slots }, { data: countries }, { data: levels }] = await Promise.all([
+    supabase.from("sponsored_slots").select("*").order("created_at", { ascending: false }),
+    supabase.from("countries").select("id, code, name").order("name"),
+    supabase.from("education_levels").select("id, label, country:countries(code)").order("label"),
+  ]);
+
+  const levelOptions = (levels ?? []).map((l) => ({
+    id: l.id as string,
+    label: l.label as string,
+    country_code: (l.country as unknown as { code: string } | null)?.code ?? "",
+  }));
+
+  return (
+    <SponsoredSlotsManager
+      slots={(slots as SponsoredSlotRow[]) ?? []}
+      countries={(countries as { id: string; code: string; name: string }[]) ?? []}
+      levels={levelOptions}
     />
   );
 }

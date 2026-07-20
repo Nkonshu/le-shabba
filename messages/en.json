@@ -582,5 +582,35 @@
     "saved": "Changes saved.",
     "saveError": "Couldn't save, please try again.",
     "deleteBlocked": "Can't delete: still used elsewhere on the platform."
+  },
+  "ads": {
+    "sponsoredLabel": "Sponsored"
+  },
+  "adminSponsoredSlots": {
+    "tabSponsoredSlots": "Partnerships",
+    "addSlot": "Add a partnership",
+    "partnerNamePlaceholder": "Partner name",
+    "titlePlaceholder": "Displayed title",
+    "bodyPlaceholder": "Short text (optional)",
+    "linkUrlPlaceholder": "Destination link (https://...)",
+    "imageUrlPlaceholder": "Logo URL (optional)",
+    "placementLabel": "Placement",
+    "placementHomeFeed": "Home feed",
+    "placementSubject": "A specific subject",
+    "subjectPlaceholder": "Subject (e.g. Chemistry)",
+    "targetingTitle": "Who will see this ad",
+    "countriesLabel": "Countries (none checked = all)",
+    "levelsLabel": "Levels (none checked = all)",
+    "languagesLabel": "Language (none checked = all)",
+    "minPointsPlaceholder": "Minimum points (optional)",
+    "startsAtLabel": "Start (optional)",
+    "endsAtLabel": "End (optional)",
+    "activeLabel": "Active",
+    "impressionsCount": "{count} views",
+    "clicksCount": "{count} clicks",
+    "confirmDelete": "Delete this partnership?",
+    "saved": "Changes saved.",
+    "saveError": "Couldn't save, please try again.",
+    "empty": "No partnership yet."
   }
 }
