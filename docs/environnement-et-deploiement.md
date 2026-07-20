@@ -235,12 +235,18 @@ dépôt : `secrets-backup/secrets-backup.gpg`. Le dépôt GitHub étant **public
 jamais rien en clair — illisible sans la phrase de passe (générée aléatoirement, communiquée une
 seule fois, à conserver dans un gestionnaire de mots de passe, jamais dans le dépôt lui-même).
 
-Pour restaurer depuis un PC neuf, une fois le dépôt cloné (étape 2 ci-dessous) :
+Pour restaurer depuis un PC neuf, une fois le dépôt cloné (étape 2 ci-dessous), **ouvrir "Git Bash"**
+(pas PowerShell — `gpg` fourni par Git pour Windows n'est pas dans le PATH de PowerShell par défaut ;
+en PowerShell, remplacer `gpg` par `& "C:\Program Files\Git\usr\bin\gpg.exe"`) :
+```bash
+gpg -o secrets-restored.zip -d secrets-backup/secrets-backup.gpg
 ```
-gpg -d secrets-backup/secrets-backup.gpg -o secrets-restored.zip
-```
-puis extraire l'archive : elle contient `.env.local` et `id_ed25519`, à replacer à leurs
-emplacements habituels (voir étapes 3 et 5).
+**Attention à l'ordre des options** : `-o FICHIER-SORTIE` avant `-d FICHIER-À-DÉCHIFFRER`, sinon gpg
+refuse avec un message `usage:` peu clair (rencontré en pratique le 21/07/2026). Demande la phrase
+de passe (texte caché), confirme avec `gpg: encrypted with 1 passphrase` si tout va bien. Puis
+extraire l'archive : elle contient `.env.local` et `id_ed25519`, à replacer à leurs emplacements
+habituels (voir étapes 3 et 5) — et supprimer ensuite le zip/dossier extraits en clair
+(`rm -rf secrets-restored.zip secrets-restored`).
 
 ### ⚠️ À faire MAINTENANT si ce n'est pas déjà fait
 
