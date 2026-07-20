@@ -205,3 +205,98 @@ Même commande que l'étape 5, mais avec `'student'` à la place de `'super_admi
 ```sql
 update profiles set role = 'student' where id = 'L_ID_COPIÉ' returning id, full_name, role;
 ```
+
+---
+
+## 5. Plan de secours si le PC tombe en panne définitivement (perte totale)
+
+**Pourquoi cette section existe :** tout ce qui précède suppose que la machine actuelle fonctionne.
+Celle-ci répond à une seule question très concrète : "le PC meurt subitement et ne rallume plus
+jamais — comment reprendre le travail exactement là où on en était, avec un PC tout neuf ?" Écrite
+pour être suivie sans réfléchir, dans un moment de stress.
+
+### D'abord, la bonne nouvelle : rien de grave ne se passe côté site
+
+Le site, la base de données, les fichiers déjà envoyés par les utilisateurs — tout ça tourne sur le
+**VPS**, pas sur le PC de développement. Le PC ne sert qu'à coder et à se connecter en
+administration. Donc si le PC meurt :
+- Le site reste en ligne, personne ne remarque rien.
+- La base de données continue de tourner, aucune donnée n'est perdue.
+- Tout ce qui a déjà été poussé sur GitHub (tout le code jusqu'au dernier `git push`) est en
+  sécurité, hébergé par GitHub, pas par le PC.
+
+Ce qui est en jeu, c'est uniquement la capacité de la personne à recoder/administrer depuis un
+nouvel appareil.
+
+### ⚠️ À faire MAINTENANT, avant qu'un problème n'arrive (sinon la suite ne marche qu'à moitié)
+
+Deux fichiers n'existent **que sur le PC actuel**, nulle part ailleurs (ni sur GitHub, ni sur le
+VPS) :
+
+1. **`.env.local`** (racine du projet) — toutes les clés secrètes (Supabase, Meilisearch...). À
+   copier dans une note **sécurisée** d'un gestionnaire de mots de passe (jamais dans un fichier
+   texte simple, jamais dans un e-mail).
+2. **La clé SSH privée** (`~/.ssh/id_ed25519`, sans le `.pub`) — permet de se connecter au VPS sans
+   mot de passe. À copier aussi dans une note sécurisée d'un gestionnaire de mots de passe.
+
+Vérifier aussi que :
+- Le gestionnaire de mots de passe est accessible depuis n'importe quel appareil (compte cloud, pas
+  une base stockée uniquement sur ce PC).
+- La connexion GitHub ne dépend pas uniquement de ce PC (mot de passe + double authentification
+  accessibles depuis un autre appareil, pas seulement une session déjà ouverte ici).
+- Le mot de passe Linux du compte `ubuntu` sur le VPS (créé au tout premier login lors de
+  l'installation) est bien dans le gestionnaire de mots de passe — filet de secours si la clé SSH
+  ne peut vraiment pas être récupérée.
+
+### Étape par étape sur le PC neuf
+
+**1. Installer les outils de base** : Node.js (LTS), Git, un éditeur de code, Claude Code (se
+   connecter avec le compte habituel), Tailscale.
+
+**2. Récupérer le code du projet :**
+```
+git clone https://github.com/Nkonshu/le-shabba.git
+```
+Tout le code jusqu'au dernier `git push` est récupéré — une session de travail pas encore poussée
+au moment de la panne est perdue (raison de plus pour pousser souvent).
+
+**3. Restaurer `.env.local` :**
+   - Si sauvegardé à l'avance (voir plus haut) : recréer le fichier, coller le contenu depuis le
+     gestionnaire de mots de passe.
+   - Sinon : retrouver chaque valeur une par une dans Coolify (onglet "Environment Variables" de
+     chaque service) une fois l'accès à Coolify restauré (étapes 4 à 6) — plus long, pas bloquant.
+
+**4. Réinstaller Tailscale et se reconnecter** avec le même compte. Le nouveau PC apparaît comme un
+   nouvel appareil sur le même réseau privé — l'accès au VPS (SSH, Coolify) refonctionne
+   immédiatement.
+
+**5. Restaurer l'accès SSH au VPS :**
+   - Clé privée sauvegardée : la recopier dans `~/.ssh/id_ed25519` sur le nouveau PC, tester
+     `ssh ubuntu@91.134.142.241`.
+   - Clé perdue, non sauvegardée : se connecter avec le mot de passe Linux de secours (proposé
+     automatiquement par `ssh ubuntu@91.134.142.241` si aucune clé n'est présentée), puis générer
+     une nouvelle paire de clés sur le nouveau PC et l'ajouter à `~/.ssh/authorized_keys` sur le
+     VPS pour ne plus dépendre du mot de passe ensuite.
+   - Clé ET mot de passe perdus : l'espace client OVHcloud permet une console web (KVM) directement
+     sur le VPS — ne jamais utiliser "Réinstaller le VPS" pour ça, ça efface tout le serveur.
+
+**6. Vérifier Coolify** (`http://<IP-Tailscale-VPS>:8000`) avec le compte administrateur (voir §3).
+   Rien à reconfigurer : Supabase et Meilisearch tournent déjà sur le VPS, indépendamment du PC.
+
+**7. Relancer l'environnement de dev** (§1 ci-dessus) : `npm install`, `npm run dev`.
+
+**8. Reprendre la conversation Claude Code :** se connecter avec le compte habituel sur le nouveau
+   PC. Point d'honnêteté : l'historique exact de la conversation ne suit pas forcément
+   automatiquement un nouvel appareil (mécanisme interne à Claude Code, pas garanti ici). Ce qui est
+   garanti en revanche : tout ce qui compte vraiment — décisions prises, état réel du projet,
+   pourquoi les choses sont faites ainsi — est écrit dans ce document (commité sur GitHub, donc
+   récupéré automatiquement à l'étape 2) et dans `le-shabba-conception-v2.md`. N'importe quelle IA
+   peut lire ces documents et retrouver le contexte complet en quelques minutes, même sans
+   l'historique exact du chat.
+
+### Rappel
+
+Ceci ne couvre que la perte du **PC de développement**. Pour le scénario différent où c'est le
+**VPS lui-même** qui tombe en panne (matériel du serveur), voir la section "Maintenance,
+sauvegardes & migration de serveur" de `le-shabba-conception-v2.md` (sauvegardes base de données +
+fichiers, runbook de changement de serveur).
