@@ -34,10 +34,12 @@ export function StatBarChart({
   title,
   data,
   emptyLabel,
+  onPointClick,
 }: {
   title: string;
   data: { label: string; value: number }[];
   emptyLabel: string;
+  onPointClick?: (label: string) => void;
 }) {
   return (
     <ChartCard title={title}>
@@ -50,7 +52,17 @@ export function StatBarChart({
             <XAxis dataKey="label" tick={{ fill: TEXT, fontSize: 11 }} axisLine={{ stroke: GRID }} tickLine={false} />
             <YAxis tick={{ fill: TEXT, fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
             <Tooltip contentStyle={{ fontSize: 12 }} />
-            <Bar dataKey="value" fill={ACCENT} radius={[4, 4, 0, 0]} isAnimationActive={false} />
+            <Bar
+              dataKey="value"
+              fill={ACCENT}
+              radius={[4, 4, 0, 0]}
+              isAnimationActive={false}
+              className={onPointClick ? "cursor-pointer" : undefined}
+              onClick={(item) => {
+                const label = (item.payload as { label?: string } | undefined)?.label;
+                if (onPointClick && label !== undefined) onPointClick(label);
+              }}
+            />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -98,10 +110,12 @@ export function StatPieChart({
   title,
   data,
   emptyLabel,
+  onPointClick,
 }: {
   title: string;
   data: { label: string; value: number }[];
   emptyLabel: string;
+  onPointClick?: (label: string) => void;
 }) {
   return (
     <ChartCard title={title}>
@@ -119,6 +133,11 @@ export function StatPieChart({
               outerRadius={80}
               label={({ name }) => name}
               isAnimationActive={false}
+              className={onPointClick ? "cursor-pointer" : undefined}
+              onClick={(item) => {
+                const label = (item.payload as { label?: string } | undefined)?.label;
+                if (onPointClick && label !== undefined) onPointClick(label);
+              }}
             >
               {data.map((_, i) => (
                 <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />

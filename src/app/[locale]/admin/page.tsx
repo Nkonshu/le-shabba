@@ -13,11 +13,11 @@ import { SchoolRequestsList, type SchoolRequestRow, type SchoolRow } from "@/src
 import { PaymentsAdminList, type AdminPaymentRow } from "@/src/components/admin/payments-admin-list";
 import { ReferenceDataManager, type CountryRow, type LevelRow } from "@/src/components/admin/reference-data-manager";
 import { SponsoredSlotsManager, type SponsoredSlotRow } from "@/src/components/admin/sponsored-slots-manager";
-import { StatBarChart, StatLineChart, StatPieChart } from "@/src/components/admin/stats/charts";
+import { StatBarChart } from "@/src/components/admin/stats/charts";
 import { StatsFilterBar } from "@/src/components/admin/stats/stats-filter-bar";
 import { ExportExcelButton } from "@/src/components/admin/stats/export-excel-button";
 import { CrossFilterBar } from "@/src/components/admin/stats/cross-filter-bar";
-import { GrowthChartWithDrilldown } from "@/src/components/admin/stats/growth-chart-with-drilldown";
+import { ChartWithDrilldown } from "@/src/components/admin/stats/chart-with-drilldown";
 
 type AuditEntry = {
   id: string;
@@ -322,7 +322,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
         ]}
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="users"
           title={t("newUsers", { count: (users ?? []).length })}
           data={bucket(users ?? [])}
@@ -332,7 +333,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xLevel={sp.xLevel}
           xUser={sp.xUser}
         />
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="comments"
           title={t("newComments", { count: comments.length })}
           data={bucket(comments)}
@@ -342,7 +344,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xLevel={sp.xLevel}
           xUser={sp.xUser}
         />
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="proposals"
           title={t("newProposals", { count: proposals.length })}
           data={bucket(proposals)}
@@ -352,7 +355,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xLevel={sp.xLevel}
           xUser={sp.xUser}
         />
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="votes"
           title={t("newVotes", { count: (votes ?? []).length })}
           data={bucket(votes ?? [])}
@@ -362,7 +366,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xLevel={sp.xLevel}
           xUser={sp.xUser}
         />
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="favorites"
           title={t("newFavorites", { count: (favorites ?? []).length })}
           data={bucket(favorites ?? [])}
@@ -373,7 +378,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xUser={sp.xUser}
         />
         <div className="flex flex-col gap-2">
-          <GrowthChartWithDrilldown
+          <ChartWithDrilldown
+            chart="line"
             metric="referrals"
             title={t("newReferrals", { count: referralRows.length })}
             data={bucket(referralRows)}
@@ -385,7 +391,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           />
           <p className="text-xs text-neutral-500">{t("referralActivationRate", { rate: activationRate })}</p>
         </div>
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="documentViews"
           title={t("documentViews", { count: (docViews ?? []).length })}
           data={bucket(docViews ?? [])}
@@ -395,7 +402,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xLevel={sp.xLevel}
           xUser={sp.xUser}
         />
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="documentDownloads"
           title={t("documentDownloads", { count: (docDownloads ?? []).length })}
           data={bucket(docDownloads ?? [])}
@@ -405,7 +413,8 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xLevel={sp.xLevel}
           xUser={sp.xUser}
         />
-        <GrowthChartWithDrilldown
+        <ChartWithDrilldown
+          chart="line"
           metric="topicViews"
           title={t("topicViews", { count: (topicViews ?? []).length })}
           data={bucket(topicViews ?? [])}
@@ -508,9 +517,27 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
           <ExportExcelButton rows={exportRows} filename="le-shabba-partenariats" />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* Pas de clic-vers-détail ici : contrairement aux clics (sponsored_slot_clicks, un
+              événement par clic), les vues ne sont qu'un compteur agrégé, sans historique par
+              visiteur — rien de plus précis à montrer que ce total. */}
           <StatBarChart title={t("impressionsBySlot")} data={impressionsBySlot} emptyLabel={t("statsEmpty")} />
-          <StatBarChart title={t("clicksBySlot")} data={clicksBySlot} emptyLabel={t("statsEmpty")} />
-          <StatPieChart title={t("byPlacement")} data={byPlacement} emptyLabel={t("statsEmpty")} />
+          <ChartWithDrilldown
+            chart="bar"
+            metric="slotClicks"
+            title={t("clicksBySlot")}
+            data={clicksBySlot}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="pie"
+            metric="slotsByPlacement"
+            title={t("byPlacement")}
+            data={byPlacement}
+            emptyLabel={t("statsEmpty")}
+          />
         </div>
       </div>
 
@@ -593,9 +620,31 @@ async function SchoolsTab({
           ]}
         />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <StatPieChart title={t("schoolsByPlan")} data={byPlan} emptyLabel={t("statsEmpty")} />
-          <StatBarChart title={t("schoolsTopByMembers")} data={topByMembers} emptyLabel={t("statsEmpty")} />
-          <StatLineChart title={t("schoolsOverTime")} data={overTime} emptyLabel={t("statsEmpty")} />
+          <ChartWithDrilldown
+            chart="pie"
+            metric="schoolsByPlan"
+            title={t("schoolsByPlan")}
+            data={byPlan}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+          />
+          <ChartWithDrilldown
+            chart="bar"
+            metric="schoolsTopByMembers"
+            title={t("schoolsTopByMembers")}
+            data={topByMembers}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+          />
+          <ChartWithDrilldown
+            chart="line"
+            metric="schoolsCreated"
+            title={t("schoolsOverTime")}
+            data={overTime}
+            emptyLabel={t("statsEmpty")}
+            period="day"
+            xCountry={sp.xCountry}
+          />
         </div>
       </div>
 
@@ -686,9 +735,37 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
           ]}
         />
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <StatBarChart title={t("revenueByMethod")} data={revenueByMethod} emptyLabel={t("statsEmpty")} />
-          <StatPieChart title={t("statusBreakdown")} data={statusBreakdown} emptyLabel={t("statsEmpty")} />
-          <StatLineChart title={t("revenueOverTime")} data={revenueOverTime} emptyLabel={t("statsEmpty")} />
+          <ChartWithDrilldown
+            chart="bar"
+            metric="paymentsByMethod"
+            title={t("revenueByMethod")}
+            data={revenueByMethod}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="pie"
+            metric="paymentsByStatus"
+            title={t("statusBreakdown")}
+            data={statusBreakdown}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="line"
+            metric="paymentsConfirmed"
+            title={t("revenueOverTime")}
+            data={revenueOverTime}
+            emptyLabel={t("statsEmpty")}
+            period="day"
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
         </div>
       </div>
 
@@ -781,9 +858,36 @@ async function UsersTab({
           <ExportExcelButton rows={exportRows} filename="le-shabba-utilisateurs" />
         </div>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <StatLineChart title={t("usersSignupsOverTime")} data={signupsOverTime} emptyLabel={t("statsEmpty")} />
-          <StatBarChart title={t("usersByCountry")} data={byCountry} emptyLabel={t("statsEmpty")} />
-          <StatPieChart title={t("usersByRole")} data={byRole} emptyLabel={t("statsEmpty")} />
+          <ChartWithDrilldown
+            chart="line"
+            metric="users"
+            title={t("usersSignupsOverTime")}
+            data={signupsOverTime}
+            emptyLabel={t("statsEmpty")}
+            period="day"
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="bar"
+            metric="usersByCountry"
+            title={t("usersByCountry")}
+            data={byCountry}
+            emptyLabel={t("statsEmpty")}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="pie"
+            metric="usersByRole"
+            title={t("usersByRole")}
+            data={byRole}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
         </div>
       </div>
 
@@ -823,8 +927,27 @@ async function JournalTab({
       <JournalFilters actors={await fetchStaff(supabase)} action={action} actor={actor} />
       <StatsFilterBar tab="journal" paramPrefix="j" from={sp.jFrom} to={sp.jTo} />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <StatBarChart title={t("journalByAction")} data={byAction} emptyLabel={t("statsEmpty")} />
-        <StatLineChart title={t("journalActionsOverTime")} data={overTime} emptyLabel={t("statsEmpty")} />
+        <ChartWithDrilldown
+          chart="bar"
+          metric="journalByAction"
+          title={t("journalByAction")}
+          data={byAction}
+          emptyLabel={t("statsEmpty")}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
+        <ChartWithDrilldown
+          chart="line"
+          metric="journalActions"
+          title={t("journalActionsOverTime")}
+          data={overTime}
+          emptyLabel={t("statsEmpty")}
+          period="day"
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
       </div>
       <AdminLogList action={action} actor={actor} from={sp.jFrom} to={sp.jTo} userIds={matchingUserIds ?? undefined} />
     </div>
@@ -867,8 +990,27 @@ async function AnomaliesTab({ sp, matchingUserIds }: { sp: AdminSearchParams; ma
         ]}
       />
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <StatPieChart title={t("anomaliesByStatus")} data={byStatus} emptyLabel={t("statsEmpty")} />
-        <StatLineChart title={t("anomaliesOverTime")} data={overTime} emptyLabel={t("statsEmpty")} />
+        <ChartWithDrilldown
+          chart="pie"
+          metric="anomaliesByStatus"
+          title={t("anomaliesByStatus")}
+          data={byStatus}
+          emptyLabel={t("statsEmpty")}
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
+        <ChartWithDrilldown
+          chart="line"
+          metric="anomaliesReports"
+          title={t("anomaliesOverTime")}
+          data={overTime}
+          emptyLabel={t("statsEmpty")}
+          period="day"
+          xCountry={sp.xCountry}
+          xLevel={sp.xLevel}
+          xUser={sp.xUser}
+        />
       </div>
       <BugReportsList status={sp.aStatus} from={sp.aFrom} to={sp.aTo} userIds={matchingUserIds ?? undefined} />
     </div>
