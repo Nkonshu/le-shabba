@@ -19,6 +19,7 @@ import { CrossFilterBar } from "@/src/components/admin/stats/cross-filter-bar";
 import { ChartWithDrilldown } from "@/src/components/admin/stats/chart-with-drilldown";
 import { AdminSidebarNav } from "@/src/components/admin/admin-sidebar-nav";
 import { Pagination, PAGE_SIZE } from "@/src/components/admin/stats/pagination";
+import { SearchBox } from "@/src/components/admin/stats/search-box";
 
 type AuditEntry = {
   id: string;
@@ -36,6 +37,7 @@ type AdminSearchParams = {
   uFrom?: string;
   uTo?: string;
   uRole?: string;
+  uSearch?: string;
   uPage?: string;
   jFrom?: string;
   jTo?: string;
@@ -858,6 +860,7 @@ async function UsersTab({
   if (sp.uTo) pageQuery = pageQuery.lte("created_at", `${sp.uTo}T23:59:59`);
   if (sp.uRole) pageQuery = pageQuery.eq("role", sp.uRole);
   if (matchingUserIds) pageQuery = pageQuery.in("id", matchingUserIds);
+  if (sp.uSearch) pageQuery = pageQuery.ilike("full_name", `%${sp.uSearch}%`);
   const { data: pageUsers, count } = await pageQuery;
   const pageRows = (pageUsers ?? []) as unknown as AdminUserRow[];
   const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
@@ -933,6 +936,7 @@ async function UsersTab({
       </section>
 
       <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <SearchBox key={sp.uSearch ?? ""} paramKey="uSearch" defaultValue={sp.uSearch} placeholder={t("usersSearchPlaceholder")} />
         <UsersTable users={pageRows} viewerRole={viewerRole} />
         <Pagination sp={sp} pageParam="uPage" page={uPage} totalPages={totalPages} />
       </section>

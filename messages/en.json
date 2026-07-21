@@ -152,6 +152,7 @@
     "statTopics": "Discussions",
     "tabFeatures": "Features",
     "tabUsers": "Users",
+    "usersSearchPlaceholder": "Search a user by name...",
     "tabJournal": "Journal",
     "anonymous": "User",
     "memberSince": "Member since {date}",
