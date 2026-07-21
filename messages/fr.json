@@ -635,6 +635,8 @@
     "levelsLabel": "Niveaux (aucun coché = tous)",
     "languagesLabel": "Langue (aucune cochée = toutes)",
     "minPointsPlaceholder": "Points minimum (optionnel)",
+    "minPointsHelpToggle": "Que fait ce champ ?",
+    "minPointsHelpText": "Chaque utilisateur accumule des \"points de génie\" en participant sur le site (réponses au forum, votes reçus, etc.). Si tu mets un chiffre ici (ex. 500), seuls les utilisateurs connectés ayant AU MOINS ce nombre de points verront cette annonce — les autres ne la verront jamais, même s'ils correspondent à tous les autres critères (pays, niveau...). Laisse vide pour ne pas filtrer sur ce critère : l'annonce sera alors visible à tous, quel que soit leur nombre de points. Ce critère est ignoré pour les visiteurs non connectés, puisqu'on ne connaît pas leurs points.",
     "startsAtLabel": "Début (optionnel)",
     "endsAtLabel": "Fin (optionnel)",
     "activeLabel": "Actif",

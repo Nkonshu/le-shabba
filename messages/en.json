@@ -635,6 +635,8 @@
     "levelsLabel": "Levels (none checked = all)",
     "languagesLabel": "Language (none checked = all)",
     "minPointsPlaceholder": "Minimum points (optional)",
+    "minPointsHelpToggle": "What does this field do?",
+    "minPointsHelpText": "Every user builds up \"genie points\" by participating on the site (forum answers, upvotes received, etc.). If you set a number here (e.g. 500), only signed-in users with AT LEAST that many points will ever see this ad — everyone else won't, even if they match every other criterion (country, level...). Leave it blank to skip this filter entirely: the ad will then be visible to everyone regardless of their points. This criterion is ignored for signed-out visitors, since their points can't be known.",
     "startsAtLabel": "Start (optional)",
     "endsAtLabel": "End (optional)",
     "activeLabel": "Active",

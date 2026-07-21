@@ -364,6 +364,8 @@ function SlotFormFields({
   const inputClass =
     "min-h-11 w-full rounded-xl border border-neutral-200 bg-white px-3 text-sm dark:border-neutral-800 dark:bg-neutral-900";
 
+  const [showMinPointsHelp, setShowMinPointsHelp] = useState(false);
+
   function toggleInArray(field: "country_codes" | "education_level_ids" | "languages", value: string) {
     const current = form[field];
     const next = current.includes(value) ? current.filter((v) => v !== value) : [...current, value];
@@ -495,6 +497,19 @@ function SlotFormFields({
           placeholder={t("minPointsPlaceholder")}
           className={inputClass}
         />
+        <button
+          type="button"
+          onClick={() => setShowMinPointsHelp((v) => !v)}
+          className="flex w-fit items-center gap-1 text-[11px] text-accent-blue"
+        >
+          {t("minPointsHelpToggle")}
+          {showMinPointsHelp ? <CaretUp size={12} /> : <CaretDown size={12} />}
+        </button>
+        {showMinPointsHelp && (
+          <p className="rounded-lg bg-neutral-50 p-2 text-[11px] leading-relaxed text-neutral-500 dark:bg-neutral-950">
+            {t("minPointsHelpText")}
+          </p>
+        )}
 
         <div className="flex gap-2">
           <label className="flex flex-1 flex-col gap-1 text-[11px] text-neutral-400">
