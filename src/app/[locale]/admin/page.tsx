@@ -260,27 +260,54 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
 
   const bucket = (rows: { created_at: string }[]) => countByPeriod(rows, (r) => r.created_at, period);
 
+  // Table à plat (une ligne par point de chaque métrique) — sert à la fois de source pour l'export
+  // Excel et pour le tableau imprimé dans le PDF, faute d'une seule liste "de lignes" naturelle ici
+  // (contrairement aux autres onglets, Croissance n'a que des séries temporelles, pas une liste).
+  const growthMetrics = [
+    { title: t("newUsers", { count: (users ?? []).length }), data: bucket(users ?? []) },
+    { title: t("newComments", { count: comments.length }), data: bucket(comments) },
+    { title: t("newProposals", { count: proposals.length }), data: bucket(proposals) },
+    { title: t("newVotes", { count: (votes ?? []).length }), data: bucket(votes ?? []) },
+    { title: t("newFavorites", { count: (favorites ?? []).length }), data: bucket(favorites ?? []) },
+    { title: t("newReferrals", { count: referralRows.length }), data: bucket(referralRows) },
+    { title: t("documentViews", { count: (docViews ?? []).length }), data: bucket(docViews ?? []) },
+    { title: t("documentDownloads", { count: (docDownloads ?? []).length }), data: bucket(docDownloads ?? []) },
+    { title: t("topicViews", { count: (topicViews ?? []).length }), data: bucket(topicViews ?? []) },
+  ];
+  const exportRows = growthMetrics.flatMap((m) => m.data.map((d) => ({ Métrique: m.title, Période: d.label, Valeur: d.value })));
+
   return (
     <section className="flex flex-col gap-4 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-      <StatsFilterBar
-        tab="growth"
-        paramPrefix="g"
-        from={sp.gFrom}
-        to={sp.gTo}
-        selects={[
-          {
-            key: "Period",
-            value: period,
-            options: [
-              { value: "day", label: t("periodDay") },
-              { value: "week", label: t("periodWeek") },
-              { value: "month", label: t("periodMonth") },
-              { value: "year", label: t("periodYear") },
-            ],
-          },
-        ]}
-      />
-      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <StatsFilterBar
+          tab="growth"
+          paramPrefix="g"
+          from={sp.gFrom}
+          to={sp.gTo}
+          selects={[
+            {
+              key: "Period",
+              value: period,
+              options: [
+                { value: "day", label: t("periodDay") },
+                { value: "week", label: t("periodWeek") },
+                { value: "month", label: t("periodMonth") },
+                { value: "year", label: t("periodYear") },
+              ],
+            },
+          ]}
+        />
+        <div className="flex gap-2">
+          <ExportExcelButton rows={exportRows} filename="le-shabba-croissance" />
+          <ExportPdfButton
+            rows={exportRows}
+            filename="le-shabba-croissance"
+            reportTitle={t("tabGrowth")}
+            chartsContainerId="growth-charts"
+          />
+        </div>
+      </div>
+      <div id="growth-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <ChartWithDrilldown
           chart="line"
           metric="users"
@@ -616,27 +643,45 @@ async function SchoolsTab({
   }));
   const schoolsTotalPages = Math.max(1, Math.ceil((schoolsCount ?? 0) / PAGE_SIZE));
 
+  const exportRows = schoolRows.map((s) => ({
+    Nom: s.name,
+    "Sous-domaine": s.subdomain ?? "",
+    Forfait: s.plan,
+    Membres: s.member_count,
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-        <StatsFilterBar
-          tab="schools"
-          paramPrefix="s"
-          from={sp.sFrom}
-          to={sp.sTo}
-          selects={[
-            {
-              key: "Plan",
-              value: sp.sPlan,
-              options: [
-                { value: "trial", label: "trial" },
-                { value: "standard", label: "standard" },
-                { value: "premium", label: "premium" },
-              ],
-            },
-          ]}
-        />
-        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <StatsFilterBar
+            tab="schools"
+            paramPrefix="s"
+            from={sp.sFrom}
+            to={sp.sTo}
+            selects={[
+              {
+                key: "Plan",
+                value: sp.sPlan,
+                options: [
+                  { value: "trial", label: "trial" },
+                  { value: "standard", label: "standard" },
+                  { value: "premium", label: "premium" },
+                ],
+              },
+            ]}
+          />
+          <div className="flex gap-2">
+            <ExportExcelButton rows={exportRows} filename="le-shabba-ecoles" />
+            <ExportPdfButton
+              rows={exportRows}
+              filename="le-shabba-ecoles"
+              reportTitle={t("tabSchools")}
+              chartsContainerId="schools-charts"
+            />
+          </div>
+        </div>
+        <div id="schools-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="pie"
             metric="schoolsByPlan"
@@ -733,37 +778,57 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
   })();
   const statusBreakdown = countBy(rows, (r) => r.status);
 
+  const exportRows = rows.map((r) => ({
+    But: r.purpose,
+    Méthode: r.method,
+    Montant: Number(r.amount),
+    Devise: r.currency,
+    Statut: r.status,
+    Date: r.created_at.slice(0, 10),
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-        <StatsFilterBar
-          tab="payments"
-          paramPrefix="p"
-          from={sp.pFrom}
-          to={sp.pTo}
-          selects={[
-            {
-              key: "Method",
-              value: sp.pMethod,
-              options: [
-                { value: "paypal", label: "PayPal" },
-                { value: "manual_whatsapp_om", label: "WhatsApp/Orange Money" },
-                { value: "mobile_money_aggregator", label: "Mobile Money" },
-              ],
-            },
-            {
-              key: "Status",
-              value: sp.pStatus,
-              options: [
-                { value: "pending", label: "pending" },
-                { value: "confirmed", label: "confirmed" },
-                { value: "rejected", label: "rejected" },
-                { value: "refunded", label: "refunded" },
-              ],
-            },
-          ]}
-        />
-        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <StatsFilterBar
+            tab="payments"
+            paramPrefix="p"
+            from={sp.pFrom}
+            to={sp.pTo}
+            selects={[
+              {
+                key: "Method",
+                value: sp.pMethod,
+                options: [
+                  { value: "paypal", label: "PayPal" },
+                  { value: "manual_whatsapp_om", label: "WhatsApp/Orange Money" },
+                  { value: "mobile_money_aggregator", label: "Mobile Money" },
+                ],
+              },
+              {
+                key: "Status",
+                value: sp.pStatus,
+                options: [
+                  { value: "pending", label: "pending" },
+                  { value: "confirmed", label: "confirmed" },
+                  { value: "rejected", label: "rejected" },
+                  { value: "refunded", label: "refunded" },
+                ],
+              },
+            ]}
+          />
+          <div className="flex gap-2">
+            <ExportExcelButton rows={exportRows} filename="le-shabba-paiements" />
+            <ExportPdfButton
+              rows={exportRows}
+              filename="le-shabba-paiements"
+              reportTitle={t("tabPayments")}
+              chartsContainerId="payments-charts"
+            />
+          </div>
+        </div>
+        <div id="payments-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="bar"
             metric="paymentsByMethod"
@@ -989,12 +1054,43 @@ async function JournalTab({
 
   const jPage = Math.max(1, Number(sp.jPage) || 1);
 
+  // Requête d'export dédiée — les colonnes de statsQuery (id, action, created_at) suffisent aux
+  // graphiques mais pas à un export présentable : on va chercher en plus l'acteur et la note.
+  let exportQuery = supabase
+    .from("admin_actions_log")
+    .select("action, note, created_at, actor:profiles!actor_id(full_name)")
+    .order("created_at", { ascending: false });
+  if (action) exportQuery = exportQuery.eq("action", action);
+  if (actor) exportQuery = exportQuery.eq("actor_id", actor);
+  if (sp.jFrom) exportQuery = exportQuery.gte("created_at", sp.jFrom);
+  if (sp.jTo) exportQuery = exportQuery.lte("created_at", `${sp.jTo}T23:59:59`);
+  if (matchingUserIds) exportQuery = exportQuery.in("actor_id", matchingUserIds);
+  if (sp.jSearch) exportQuery = exportQuery.ilike("note", `%${sp.jSearch}%`);
+  const { data: exportData } = await exportQuery;
+  const exportRows = (exportData ?? []).map((r) => ({
+    Acteur: (r.actor as unknown as { full_name: string | null } | null)?.full_name ?? "",
+    Action: t(`action.${r.action}`),
+    Note: r.note ?? "",
+    Date: new Date(r.created_at).toLocaleString(),
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-        <JournalFilters actors={await fetchStaff(supabase)} action={action} actor={actor} />
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <JournalFilters actors={await fetchStaff(supabase)} action={action} actor={actor} />
+          <div className="flex gap-2">
+            <ExportExcelButton rows={exportRows} filename="le-shabba-journal" />
+            <ExportPdfButton
+              rows={exportRows}
+              filename="le-shabba-journal"
+              reportTitle={t("tabJournal")}
+              chartsContainerId="journal-charts"
+            />
+          </div>
+        </div>
         <StatsFilterBar tab="journal" paramPrefix="j" from={sp.jFrom} to={sp.jTo} />
-        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="journal-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="bar"
             metric="journalByAction"
@@ -1052,28 +1148,57 @@ async function AnomaliesTab({ sp, matchingUserIds }: { sp: AdminSearchParams; ma
 
   const aPage = Math.max(1, Number(sp.aPage) || 1);
 
+  // Requête d'export dédiée — statsQuery (id, status, created_at) ne suffit pas à un export lisible.
+  let exportQuery = supabase
+    .from("bug_reports")
+    .select("description, status, page_url, created_at, reporter:profiles(full_name)")
+    .order("created_at", { ascending: false });
+  if (sp.aStatus) exportQuery = exportQuery.eq("status", sp.aStatus);
+  if (sp.aFrom) exportQuery = exportQuery.gte("created_at", sp.aFrom);
+  if (sp.aTo) exportQuery = exportQuery.lte("created_at", `${sp.aTo}T23:59:59`);
+  if (matchingUserIds) exportQuery = exportQuery.in("reporter_id", matchingUserIds);
+  const { data: exportData } = await exportQuery;
+  const exportRows = (exportData ?? []).map((r) => ({
+    Description: r.description,
+    Statut: r.status,
+    Page: r.page_url ?? "",
+    Rapporteur: (r.reporter as unknown as { full_name: string | null } | null)?.full_name ?? "",
+    Date: new Date(r.created_at).toLocaleString(),
+  }));
+
   return (
     <div className="flex flex-col gap-6">
       <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-        <StatsFilterBar
-          tab="anomalies"
-          paramPrefix="a"
-          from={sp.aFrom}
-          to={sp.aTo}
-          selects={[
-            {
-              key: "Status",
-              value: sp.aStatus,
-              options: [
-                { value: "open", label: "open" },
-                { value: "in_progress", label: "in_progress" },
-                { value: "resolved", label: "resolved" },
-                { value: "wont_fix", label: "wont_fix" },
-              ],
-            },
-          ]}
-        />
-        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <StatsFilterBar
+            tab="anomalies"
+            paramPrefix="a"
+            from={sp.aFrom}
+            to={sp.aTo}
+            selects={[
+              {
+                key: "Status",
+                value: sp.aStatus,
+                options: [
+                  { value: "open", label: "open" },
+                  { value: "in_progress", label: "in_progress" },
+                  { value: "resolved", label: "resolved" },
+                  { value: "wont_fix", label: "wont_fix" },
+                ],
+              },
+            ]}
+          />
+          <div className="flex gap-2">
+            <ExportExcelButton rows={exportRows} filename="le-shabba-anomalies" />
+            <ExportPdfButton
+              rows={exportRows}
+              filename="le-shabba-anomalies"
+              reportTitle={t("tabAnomalies")}
+              chartsContainerId="anomalies-charts"
+            />
+          </div>
+        </div>
+        <div id="anomalies-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="pie"
             metric="anomaliesByStatus"
