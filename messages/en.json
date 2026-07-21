@@ -132,6 +132,7 @@
     "statsTo": "To",
     "statsResetFilters": "Reset filters",
     "statsExportExcel": "Export to Excel",
+    "statsExportPdf": "Export to PDF",
     "statsEmpty": "Not enough data for this filter.",
     "crossFilterLabel": "Cross-filter",
     "crossFilterAllCountries": "All countries",

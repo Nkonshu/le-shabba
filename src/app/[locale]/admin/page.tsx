@@ -15,6 +15,7 @@ import { SponsoredSlotsManager, type SponsoredSlotRow } from "@/src/components/a
 import { StatBarChart } from "@/src/components/admin/stats/charts";
 import { StatsFilterBar } from "@/src/components/admin/stats/stats-filter-bar";
 import { ExportExcelButton } from "@/src/components/admin/stats/export-excel-button";
+import { ExportPdfButton } from "@/src/components/admin/stats/export-pdf-button";
 import { CrossFilterBar } from "@/src/components/admin/stats/cross-filter-bar";
 import { ChartWithDrilldown } from "@/src/components/admin/stats/chart-with-drilldown";
 import { AdminSidebarNav } from "@/src/components/admin/admin-sidebar-nav";
@@ -499,9 +500,17 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
               },
             ]}
           />
-          <ExportExcelButton rows={exportRows} filename="le-shabba-partenariats" />
+          <div className="flex gap-2">
+            <ExportExcelButton rows={exportRows} filename="le-shabba-partenariats" />
+            <ExportPdfButton
+              rows={exportRows}
+              filename="le-shabba-partenariats"
+              reportTitle={t("tabSponsoredSlots")}
+              chartsContainerId="sponsored-charts"
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="sponsored-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {/* Pas de clic-vers-détail ici : contrairement aux clics (sponsored_slot_clicks, un
               événement par clic), les vues ne sont qu'un compteur agrégé, sans historique par
               visiteur — rien de plus précis à montrer que ce total. */}
@@ -899,9 +908,17 @@ async function UsersTab({
               },
             ]}
           />
-          <ExportExcelButton rows={exportRows} filename="le-shabba-utilisateurs" />
+          <div className="flex gap-2">
+            <ExportExcelButton rows={exportRows} filename="le-shabba-utilisateurs" />
+            <ExportPdfButton
+              rows={exportRows}
+              filename="le-shabba-utilisateurs"
+              reportTitle={t("tabUsers")}
+              chartsContainerId="users-charts"
+            />
+          </div>
         </div>
-        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div id="users-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="line"
             metric="users"
