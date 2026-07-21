@@ -19,14 +19,14 @@ export function CrossFilterBar({
   users,
   country,
   level,
-  userId,
+  userIds,
 }: {
   countries: { code: string; name: string }[];
   levels: { id: string; label: string; countryCode: string }[];
   users: CrossFilterUser[];
   country?: string;
   level?: string;
-  userId?: string;
+  userIds?: string;
 }) {
   const t = useTranslations("admin");
   const tc = useTranslations("common");
@@ -46,10 +46,13 @@ export function CrossFilterBar({
     return () => document.removeEventListener("mousedown", onClickOutside);
   }, []);
 
-  const activeCount = [country, level, userId].filter(Boolean).length;
-  const selectedUser = users.find((u) => u.id === userId);
+  const selectedIds = userIds ? userIds.split(",").filter(Boolean) : [];
+  const activeCount = [country, level].filter(Boolean).length + selectedIds.length;
+  const selectedUsers = selectedIds.map((id) => users.find((u) => u.id === id)).filter((u): u is CrossFilterUser => Boolean(u));
   const filteredUsers = userQuery
-    ? users.filter((u) => (u.full_name ?? "").toLowerCase().includes(userQuery.toLowerCase())).slice(0, 8)
+    ? users
+        .filter((u) => !selectedIds.includes(u.id) && (u.full_name ?? "").toLowerCase().includes(userQuery.toLowerCase()))
+        .slice(0, 8)
     : [];
 
   function update(key: "xCountry" | "xLevel" | "xUser", value: string) {
@@ -68,10 +71,14 @@ export function CrossFilterBar({
     setMobileOpen(false);
   }
 
-  function selectUser(u: CrossFilterUser) {
-    update("xUser", u.id);
+  function addUser(u: CrossFilterUser) {
+    update("xUser", [...selectedIds, u.id].join(","));
     setUserQuery("");
     setUserDropdownOpen(false);
+  }
+
+  function removeUser(id: string) {
+    update("xUser", selectedIds.filter((i) => i !== id).join(","));
   }
 
   const fields = (
@@ -94,49 +101,47 @@ export function CrossFilterBar({
         ))}
       </select>
 
-      <div ref={userFieldRef} className="relative">
-        {selectedUser ? (
+      <div ref={userFieldRef} className="relative flex flex-wrap items-center gap-1.5">
+        {selectedUsers.map((u) => (
           <button
-            onClick={() => update("xUser", "")}
+            key={u.id}
+            onClick={() => removeUser(u.id)}
             className="flex min-h-11 items-center gap-2 rounded-xl border border-accent-blue bg-accent-blue/10 px-3 text-sm font-medium text-accent-blue"
           >
-            {selectedUser.full_name ?? t("anonymous")}
+            {u.full_name ?? t("anonymous")}
             <X size={14} />
           </button>
-        ) : (
-          <>
-            <div className="relative">
-              <MagnifyingGlass size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input
-                value={userQuery}
-                onChange={(e) => {
-                  setUserQuery(e.target.value);
-                  setUserDropdownOpen(true);
-                }}
-                onFocus={() => setUserDropdownOpen(true)}
-                placeholder={t("crossFilterUserPlaceholder")}
-                className={`${SELECT_CLASS} w-full pl-8 sm:w-56`}
-              />
+        ))}
+        <div className="relative">
+          <MagnifyingGlass size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+          <input
+            value={userQuery}
+            onChange={(e) => {
+              setUserQuery(e.target.value);
+              setUserDropdownOpen(true);
+            }}
+            onFocus={() => setUserDropdownOpen(true)}
+            placeholder={t("crossFilterUserPlaceholder")}
+            className={`${SELECT_CLASS} w-full pl-8 sm:w-56`}
+          />
+          {userDropdownOpen && userQuery && (
+            <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
+              {filteredUsers.length === 0 ? (
+                <p className="px-3 py-2 text-xs text-neutral-400">{t("crossFilterNoUser")}</p>
+              ) : (
+                filteredUsers.map((u) => (
+                  <button
+                    key={u.id}
+                    onClick={() => addUser(u)}
+                    className="block w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800"
+                  >
+                    {u.full_name ?? t("anonymous")}
+                  </button>
+                ))
+              )}
             </div>
-            {userDropdownOpen && userQuery && (
-              <div className="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-neutral-200 bg-white py-1 shadow-lg dark:border-neutral-800 dark:bg-neutral-900">
-                {filteredUsers.length === 0 ? (
-                  <p className="px-3 py-2 text-xs text-neutral-400">{t("crossFilterNoUser")}</p>
-                ) : (
-                  filteredUsers.map((u) => (
-                    <button
-                      key={u.id}
-                      onClick={() => selectUser(u)}
-                      className="block w-full px-3 py-2 text-left text-sm hover:bg-neutral-50 dark:hover:bg-neutral-800"
-                    >
-                      {u.full_name ?? t("anonymous")}
-                    </button>
-                  ))
-                )}
-              </div>
-            )}
-          </>
-        )}
+          )}
+        </div>
       </div>
     </>
   );

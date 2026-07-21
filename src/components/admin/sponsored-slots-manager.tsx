@@ -7,6 +7,7 @@ import { Trash, Plus, PencilSimple, CaretDown, CaretUp } from "@phosphor-icons/r
 import { useRouter } from "@/src/i18n/navigation";
 import { createClient } from "@/src/utils/supabase/client";
 import type { SponsoredSlotPlacement } from "@/src/components/ads/sponsored-slot";
+import { SearchBox } from "@/src/components/admin/stats/search-box";
 
 type ClickRow = { id: string; clicked_at: string; user: { full_name: string | null } | null };
 
@@ -131,6 +132,7 @@ export function SponsoredSlotsManager({
   levels,
   subjects,
   matchingUserIds,
+  search,
   pagination,
 }: {
   slots: SponsoredSlotRow[];
@@ -138,6 +140,7 @@ export function SponsoredSlotsManager({
   levels: LevelOption[];
   subjects: string[];
   matchingUserIds: string[] | null;
+  search?: string;
   pagination?: ReactNode;
 }) {
   const t = useTranslations("adminSponsoredSlots");
@@ -229,6 +232,7 @@ export function SponsoredSlotsManager({
 
   return (
     <section className="flex flex-col gap-4 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+      <SearchBox key={search ?? ""} paramKey="ptSearch" defaultValue={search} placeholder={tc("search")} />
       {slots.length === 0 && !adding && <p className="text-sm text-neutral-400">{t("empty")}</p>}
 
       {slots.map((slot) =>

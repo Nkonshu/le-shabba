@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useRouter } from "@/src/i18n/navigation";
 import { createClient } from "@/src/utils/supabase/client";
+import { SearchBox } from "@/src/components/admin/stats/search-box";
 
 export type AdminPaymentRow = {
   id: string;
@@ -20,10 +21,12 @@ export type AdminPaymentRow = {
 export function PaymentsAdminList({
   pending,
   revenue,
+  pendingSearch,
   pendingPagination,
 }: {
   pending: AdminPaymentRow[];
   revenue: { currency: string; total: number }[];
+  pendingSearch?: string;
   pendingPagination?: ReactNode;
 }) {
   const t = useTranslations("adminPayments");
@@ -69,6 +72,12 @@ export function PaymentsAdminList({
 
       <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("pendingManualTitle")}</h2>
+        <SearchBox
+          key={pendingSearch ?? ""}
+          paramKey="pSearch"
+          defaultValue={pendingSearch}
+          placeholder={t("pendingSearchPlaceholder")}
+        />
         {pending.length === 0 ? (
           <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-neutral-500 dark:bg-neutral-900">
             {t("noPendingPayments")}

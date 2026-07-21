@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useRouter } from "@/src/i18n/navigation";
 import { createClient } from "@/src/utils/supabase/client";
+import { SearchBox } from "@/src/components/admin/stats/search-box";
 
 export type SchoolRequestRow = {
   id: string;
@@ -26,13 +27,16 @@ export type SchoolRow = {
 export function SchoolRequestsList({
   requests,
   schools,
+  schoolsSearch,
   schoolsPagination,
 }: {
   requests: SchoolRequestRow[];
   schools: SchoolRow[];
+  schoolsSearch?: string;
   schoolsPagination?: ReactNode;
 }) {
   const t = useTranslations("adminSchools");
+  const tc = useTranslations("common");
   const router = useRouter();
   const supabase = createClient();
 
@@ -100,6 +104,7 @@ export function SchoolRequestsList({
 
       <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("activeSchoolsTitle")}</h2>
+        <SearchBox key={schoolsSearch ?? ""} paramKey="sSearch" defaultValue={schoolsSearch} placeholder={tc("search")} />
         {schools.length === 0 ? (
           <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-neutral-500 dark:bg-neutral-900">
             {t("noSchools")}

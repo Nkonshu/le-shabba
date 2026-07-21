@@ -71,7 +71,7 @@ export async function GET(request: Request) {
     let idsQuery = supabase.from("profiles").select("id");
     if (xCountryId) idsQuery = idsQuery.eq("country_id", xCountryId);
     if (xLevel) idsQuery = idsQuery.eq("level_id", xLevel);
-    if (xUser) idsQuery = idsQuery.eq("id", xUser);
+    if (xUser) idsQuery = idsQuery.in("id", xUser.split(","));
     const { data } = await idsQuery;
     matchingUserIds = (data ?? []).map((p) => p.id);
   }

@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { Link } from "@/src/i18n/navigation";
 import { Pagination, PAGE_SIZE } from "@/src/components/admin/stats/pagination";
+import { SearchBox } from "@/src/components/admin/stats/search-box";
 
 type LogRow = {
   id: string;
@@ -19,6 +20,7 @@ export async function AdminLogList({
   from,
   to,
   userIds,
+  search,
   sp,
   page,
 }: {
@@ -27,6 +29,7 @@ export async function AdminLogList({
   from?: string;
   to?: string;
   userIds?: string[];
+  search?: string;
   sp: Record<string, string | undefined>;
   page: number;
 }) {
@@ -46,6 +49,7 @@ export async function AdminLogList({
   if (from) query = query.gte("created_at", from);
   if (to) query = query.lte("created_at", `${to}T23:59:59`);
   if (userIds) query = query.in("actor_id", userIds);
+  if (search) query = query.ilike("note", `%${search}%`);
 
   const { data: entries, count } = await query;
   const rows = (entries ?? []) as unknown as LogRow[];
@@ -68,14 +72,18 @@ export async function AdminLogList({
 
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">
-        {t("journalEmpty")}
-      </p>
+      <div className="flex flex-col gap-2">
+        <SearchBox key={search ?? ""} paramKey="jSearch" defaultValue={search} placeholder={t("journalSearchPlaceholder")} />
+        <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">
+          {t("journalEmpty")}
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-2">
+      <SearchBox key={search ?? ""} paramKey="jSearch" defaultValue={search} placeholder={t("journalSearchPlaceholder")} />
       {rows.map((entry) => {
         let targetLabel = t("targetDeleted");
         let targetHref: string | null = null;

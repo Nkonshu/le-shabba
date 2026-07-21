@@ -40,6 +40,7 @@ type AdminSearchParams = {
   jFrom?: string;
   jTo?: string;
   jPage?: string;
+  jSearch?: string;
   aFrom?: string;
   aTo?: string;
   aStatus?: string;
@@ -48,19 +49,23 @@ type AdminSearchParams = {
   sTo?: string;
   sPlan?: string;
   sPage?: string;
+  sSearch?: string;
   pFrom?: string;
   pTo?: string;
   pMethod?: string;
   pStatus?: string;
   pPage?: string;
+  pSearch?: string;
   ptFrom?: string;
   ptTo?: string;
   ptPlacement?: string;
   ptPage?: string;
+  ptSearch?: string;
   gFrom?: string;
   gTo?: string;
   gPeriod?: string;
   fPage?: string;
+  rSearch?: string;
   xCountry?: string;
   xLevel?: string;
   xUser?: string;
@@ -120,7 +125,7 @@ export default async function AdminPage({
     let idsQuery = supabase.from("profiles").select("id");
     if (xCountryId) idsQuery = idsQuery.eq("country_id", xCountryId);
     if (sp.xLevel) idsQuery = idsQuery.eq("level_id", sp.xLevel);
-    if (sp.xUser) idsQuery = idsQuery.eq("id", sp.xUser);
+    if (sp.xUser) idsQuery = idsQuery.in("id", sp.xUser.split(","));
     const { data: matchedProfiles } = await idsQuery;
     matchingUserIds = (matchedProfiles ?? []).map((p) => p.id);
   }
@@ -154,7 +159,7 @@ export default async function AdminPage({
         users={xUsersRaw ?? []}
         country={sp.xCountry}
         level={sp.xLevel}
-        userId={sp.xUser}
+        userIds={sp.xUser}
       />
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -167,7 +172,7 @@ export default async function AdminPage({
           {tab === "anomalies" && <AnomaliesTab sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "schools" && <SchoolsTab sp={sp} matchingUserIds={matchingUserIds} xCountryId={xCountryId} />}
           {tab === "payments" && <PaymentsTab sp={sp} matchingUserIds={matchingUserIds} />}
-          {tab === "reference-data" && <ReferenceDataTab />}
+          {tab === "reference-data" && <ReferenceDataTab sp={sp} />}
           {tab === "sponsored-slots" && <SponsoredSlotsTab sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "growth" && <GrowthTab sp={sp} matchingUserIds={matchingUserIds} />}
         </div>
@@ -380,10 +385,12 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
   );
 }
 
-async function ReferenceDataTab() {
+async function ReferenceDataTab({ sp }: { sp: AdminSearchParams }) {
   const supabase = await createClient();
+  let countriesQuery = supabase.from("countries").select("id, code, name").order("name");
+  if (sp.rSearch) countriesQuery = countriesQuery.or(`name.ilike.%${sp.rSearch}%,code.ilike.%${sp.rSearch}%`);
   const [{ data: countries }, { data: levels }] = await Promise.all([
-    supabase.from("countries").select("id, code, name").order("name"),
+    countriesQuery,
     supabase.from("education_levels").select("id, country_id, label, sort_order").order("sort_order"),
   ]);
 
@@ -391,6 +398,7 @@ async function ReferenceDataTab() {
     <ReferenceDataManager
       countries={(countries as CountryRow[]) ?? []}
       levels={(levels as LevelRow[]) ?? []}
+      countriesSearch={sp.rSearch}
     />
   );
 }
@@ -439,14 +447,13 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
   }));
 
   const ptPage = Math.max(1, Number(sp.ptPage) || 1);
-  const {
-    data: slots,
-    count: slotsCount,
-  } = await supabase
+  let slotsQuery = supabase
     .from("sponsored_slots")
     .select("*", { count: "exact" })
     .order("created_at", { ascending: false })
     .range((ptPage - 1) * PAGE_SIZE, ptPage * PAGE_SIZE - 1);
+  if (sp.ptSearch) slotsQuery = slotsQuery.or(`partner_name.ilike.%${sp.ptSearch}%,title.ilike.%${sp.ptSearch}%`);
+  const { data: slots, count: slotsCount } = await slotsQuery;
   const slotsTotalPages = Math.max(1, Math.ceil((slotsCount ?? 0) / PAGE_SIZE));
   const levelOptions = (levels ?? []).map((l) => ({
     id: l.id as string,
@@ -523,6 +530,7 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
         levels={levelOptions}
         subjects={subjects}
         matchingUserIds={matchingUserIds}
+        search={sp.ptSearch}
         pagination={<Pagination sp={sp} pageParam="ptPage" page={ptPage} totalPages={slotsTotalPages} />}
       />
     </div>
@@ -589,6 +597,7 @@ async function SchoolsTab({
   if (sp.sTo) pageSchoolsQuery = pageSchoolsQuery.lte("created_at", `${sp.sTo}T23:59:59`);
   if (sp.sPlan) pageSchoolsQuery = pageSchoolsQuery.eq("plan", sp.sPlan);
   if (xCountryId) pageSchoolsQuery = pageSchoolsQuery.eq("country_id", xCountryId);
+  if (sp.sSearch) pageSchoolsQuery = pageSchoolsQuery.ilike("name", `%${sp.sSearch}%`);
   const { data: pageSchools, count: schoolsCount } = await pageSchoolsQuery;
   const pageSchoolRows: SchoolRow[] = (pageSchools ?? []).map((s) => ({
     ...s,
@@ -648,6 +657,7 @@ async function SchoolsTab({
       <SchoolRequestsList
         requests={(requests as unknown as SchoolRequestRow[]) ?? []}
         schools={pageSchoolRows}
+        schoolsSearch={sp.sSearch}
         schoolsPagination={<Pagination sp={sp} pageParam="sPage" page={sPage} totalPages={schoolsTotalPages} />}
       />
     </div>
@@ -676,6 +686,7 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
     .eq("status", "pending")
     .order("created_at", { ascending: true })
     .range((pPage - 1) * PAGE_SIZE, pPage * PAGE_SIZE - 1);
+  if (sp.pSearch) pendingQuery = pendingQuery.ilike("external_reference", `%${sp.pSearch}%`);
   let confirmedQuery = supabase.from("payments").select("amount, currency").eq("status", "confirmed");
   if (matchingUserIds) {
     pendingQuery = pendingQuery.in("user_id", matchingUserIds);
@@ -779,6 +790,7 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
       <PaymentsAdminList
         pending={(pending as unknown as AdminPaymentRow[]) ?? []}
         revenue={[...revenueByCurrency.entries()].map(([currency, total]) => ({ currency, total }))}
+        pendingSearch={sp.pSearch}
         pendingPagination={<Pagination sp={sp} pageParam="pPage" page={pPage} totalPages={pendingTotalPages} />}
       />
     </div>
@@ -993,6 +1005,7 @@ async function JournalTab({
           from={sp.jFrom}
           to={sp.jTo}
           userIds={matchingUserIds ?? undefined}
+          search={sp.jSearch}
           sp={sp}
           page={jPage}
         />

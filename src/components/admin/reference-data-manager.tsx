@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { PencilSimple, Trash, Plus } from "@phosphor-icons/react";
 import { useRouter } from "@/src/i18n/navigation";
 import { createClient } from "@/src/utils/supabase/client";
+import { SearchBox } from "@/src/components/admin/stats/search-box";
 
 export type CountryRow = { id: string; code: string; name: string };
 export type LevelRow = { id: string; country_id: string; label: string; sort_order: number };
@@ -13,9 +14,11 @@ export type LevelRow = { id: string; country_id: string; label: string; sort_ord
 export function ReferenceDataManager({
   countries,
   levels,
+  countriesSearch,
 }: {
   countries: CountryRow[];
   levels: LevelRow[];
+  countriesSearch?: string;
 }) {
   const t = useTranslations("adminReferenceData");
   const tc = useTranslations("common");
@@ -119,6 +122,7 @@ export function ReferenceDataManager({
     <div className="flex flex-col gap-8">
       <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("countriesTitle")}</h2>
+        <SearchBox key={countriesSearch ?? ""} paramKey="rSearch" defaultValue={countriesSearch} placeholder={tc("search")} />
         <div className="flex flex-col gap-2">
           {countries.map((c) =>
             editingCountry?.id === c.id ? (

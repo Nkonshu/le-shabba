@@ -175,6 +175,7 @@
       "super_admin": "Super admin"
     },
     "journalEmpty": "Aucune action pour l'instant.",
+    "journalSearchPlaceholder": "Rechercher dans les notes...",
     "targetDeleted": "contenu supprimé",
     "targetAnswer": "une réponse du forum",
     "action": {
@@ -585,6 +586,7 @@
   "adminPayments": {
     "tabPayments": "Paiements",
     "pendingManualTitle": "Paiements manuels en attente",
+    "pendingSearchPlaceholder": "Rechercher par référence...",
     "noPendingPayments": "Aucun paiement en attente.",
     "confirm": "Confirmer",
     "reject": "Rejeter",
