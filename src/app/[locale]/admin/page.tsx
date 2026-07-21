@@ -2,7 +2,6 @@ import { getTranslations } from "next-intl/server";
 import { requireStaff } from "@/src/lib/dal";
 import { getFeatureFlags } from "@/src/lib/feature-flags";
 import { createClient } from "@/src/utils/supabase/server";
-import { Link } from "@/src/i18n/navigation";
 import { countByDay, countBy, sumBy, countByPeriod, type StatsPeriod } from "@/src/lib/stats";
 import { FeatureFlagsManager } from "@/src/components/admin/feature-flags-manager";
 import { UsersTable, type AdminUserRow } from "@/src/components/admin/users-table";
@@ -18,6 +17,7 @@ import { StatsFilterBar } from "@/src/components/admin/stats/stats-filter-bar";
 import { ExportExcelButton } from "@/src/components/admin/stats/export-excel-button";
 import { CrossFilterBar } from "@/src/components/admin/stats/cross-filter-bar";
 import { ChartWithDrilldown } from "@/src/components/admin/stats/chart-with-drilldown";
+import { AdminSidebarNav } from "@/src/components/admin/admin-sidebar-nav";
 
 type AuditEntry = {
   id: string;
@@ -117,8 +117,20 @@ export default async function AdminPage({
     matchingUserIds = (matchedProfiles ?? []).map((p) => p.id);
   }
 
+  const tabs = [
+    { key: "features", href: "/admin?tab=features", label: t("tabFeatures") },
+    { key: "users", href: "/admin?tab=users", label: t("tabUsers") },
+    { key: "journal", href: "/admin?tab=journal", label: t("tabJournal") },
+    { key: "anomalies", href: "/admin?tab=anomalies", label: t("tabAnomalies") },
+    { key: "schools", href: "/admin?tab=schools", label: tAdminSchools("tabSchools") },
+    { key: "payments", href: "/admin?tab=payments", label: tAdminPayments("tabPayments") },
+    { key: "reference-data", href: "/admin?tab=reference-data", label: tAdminReferenceData("tabReferenceData") },
+    { key: "sponsored-slots", href: "/admin?tab=sponsored-slots", label: tAdminSponsoredSlots("tabSponsoredSlots") },
+    { key: "growth", href: "/admin?tab=growth", label: tAdminGrowth("tabGrowth") },
+  ];
+
   return (
-    <main className="mx-auto flex max-w-2xl flex-col gap-6 px-4 py-10">
+    <main className="mx-auto flex max-w-[1440px] flex-col gap-6 px-4 py-10">
       <h1 className="text-2xl font-black">{t("title")}</h1>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -137,90 +149,21 @@ export default async function AdminPage({
         userId={sp.xUser}
       />
 
-      <div className="flex gap-2 overflow-x-auto border-b border-neutral-100 dark:border-neutral-900">
-        <Link
-          href="/admin?tab=features"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "features" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {t("tabFeatures")}
-        </Link>
-        <Link
-          href="/admin?tab=users"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "users" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {t("tabUsers")}
-        </Link>
-        <Link
-          href="/admin?tab=journal"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "journal" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {t("tabJournal")}
-        </Link>
-        <Link
-          href="/admin?tab=anomalies"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "anomalies" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {t("tabAnomalies")}
-        </Link>
-        <Link
-          href="/admin?tab=schools"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "schools" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {tAdminSchools("tabSchools")}
-        </Link>
-        <Link
-          href="/admin?tab=payments"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "payments" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {tAdminPayments("tabPayments")}
-        </Link>
-        <Link
-          href="/admin?tab=reference-data"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "reference-data" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {tAdminReferenceData("tabReferenceData")}
-        </Link>
-        <Link
-          href="/admin?tab=sponsored-slots"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "sponsored-slots" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {tAdminSponsoredSlots("tabSponsoredSlots")}
-        </Link>
-        <Link
-          href="/admin?tab=growth"
-          className={`min-h-11 shrink-0 border-b-2 px-3 text-sm font-medium leading-[2.75rem] ${
-            tab === "growth" ? "border-accent-blue" : "border-transparent text-neutral-500"
-          }`}
-        >
-          {tAdminGrowth("tabGrowth")}
-        </Link>
-      </div>
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <AdminSidebarNav tabs={tabs} activeTab={tab} />
 
-      {tab === "features" && <FeaturesTab />}
-      {tab === "users" && <UsersTab viewerRole={profile.role} sp={sp} matchingUserIds={matchingUserIds} />}
-      {tab === "journal" && <JournalTab action={action} actor={actor} sp={sp} matchingUserIds={matchingUserIds} />}
-      {tab === "anomalies" && <AnomaliesTab sp={sp} matchingUserIds={matchingUserIds} />}
-      {tab === "schools" && <SchoolsTab sp={sp} matchingUserIds={matchingUserIds} xCountryId={xCountryId} />}
-      {tab === "payments" && <PaymentsTab sp={sp} matchingUserIds={matchingUserIds} />}
-      {tab === "reference-data" && <ReferenceDataTab />}
-      {tab === "sponsored-slots" && <SponsoredSlotsTab sp={sp} matchingUserIds={matchingUserIds} />}
-      {tab === "growth" && <GrowthTab sp={sp} matchingUserIds={matchingUserIds} />}
+        <div className="min-w-0 flex-1">
+          {tab === "features" && <FeaturesTab />}
+          {tab === "users" && <UsersTab viewerRole={profile.role} sp={sp} matchingUserIds={matchingUserIds} />}
+          {tab === "journal" && <JournalTab action={action} actor={actor} sp={sp} matchingUserIds={matchingUserIds} />}
+          {tab === "anomalies" && <AnomaliesTab sp={sp} matchingUserIds={matchingUserIds} />}
+          {tab === "schools" && <SchoolsTab sp={sp} matchingUserIds={matchingUserIds} xCountryId={xCountryId} />}
+          {tab === "payments" && <PaymentsTab sp={sp} matchingUserIds={matchingUserIds} />}
+          {tab === "reference-data" && <ReferenceDataTab />}
+          {tab === "sponsored-slots" && <SponsoredSlotsTab sp={sp} matchingUserIds={matchingUserIds} />}
+          {tab === "growth" && <GrowthTab sp={sp} matchingUserIds={matchingUserIds} />}
+        </div>
+      </div>
     </main>
   );
 }
@@ -321,7 +264,7 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           },
         ]}
       />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <ChartWithDrilldown
           chart="line"
           metric="users"
@@ -532,7 +475,7 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
           />
           <ExportExcelButton rows={exportRows} filename="le-shabba-partenariats" />
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {/* Pas de clic-vers-détail ici : contrairement aux clics (sponsored_slot_clicks, un
               événement par clic), les vues ne sont qu'un compteur agrégé, sans historique par
               visiteur — rien de plus précis à montrer que ce total. */}
@@ -636,7 +579,7 @@ async function SchoolsTab({
             },
           ]}
         />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="pie"
             metric="schoolsByPlan"
@@ -751,7 +694,7 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
             },
           ]}
         />
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="bar"
             metric="paymentsByMethod"
@@ -874,7 +817,7 @@ async function UsersTab({
           />
           <ExportExcelButton rows={exportRows} filename="le-shabba-utilisateurs" />
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
           <ChartWithDrilldown
             chart="line"
             metric="users"
@@ -943,7 +886,7 @@ async function JournalTab({
     <div className="flex flex-col gap-4">
       <JournalFilters actors={await fetchStaff(supabase)} action={action} actor={actor} />
       <StatsFilterBar tab="journal" paramPrefix="j" from={sp.jFrom} to={sp.jTo} />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <ChartWithDrilldown
           chart="bar"
           metric="journalByAction"
@@ -1006,7 +949,7 @@ async function AnomaliesTab({ sp, matchingUserIds }: { sp: AdminSearchParams; ma
           },
         ]}
       />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
         <ChartWithDrilldown
           chart="pie"
           metric="anomaliesByStatus"
