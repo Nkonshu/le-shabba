@@ -18,6 +18,7 @@ import { ExportExcelButton } from "@/src/components/admin/stats/export-excel-but
 import { CrossFilterBar } from "@/src/components/admin/stats/cross-filter-bar";
 import { ChartWithDrilldown } from "@/src/components/admin/stats/chart-with-drilldown";
 import { AdminSidebarNav } from "@/src/components/admin/admin-sidebar-nav";
+import { Pagination, PAGE_SIZE } from "@/src/components/admin/stats/pagination";
 
 type AuditEntry = {
   id: string;
@@ -35,24 +36,31 @@ type AdminSearchParams = {
   uFrom?: string;
   uTo?: string;
   uRole?: string;
+  uPage?: string;
   jFrom?: string;
   jTo?: string;
+  jPage?: string;
   aFrom?: string;
   aTo?: string;
   aStatus?: string;
+  aPage?: string;
   sFrom?: string;
   sTo?: string;
   sPlan?: string;
+  sPage?: string;
   pFrom?: string;
   pTo?: string;
   pMethod?: string;
   pStatus?: string;
+  pPage?: string;
   ptFrom?: string;
   ptTo?: string;
   ptPlacement?: string;
+  ptPage?: string;
   gFrom?: string;
   gTo?: string;
   gPeriod?: string;
+  fPage?: string;
   xCountry?: string;
   xLevel?: string;
   xUser?: string;
@@ -153,7 +161,7 @@ export default async function AdminPage({
         <AdminSidebarNav tabs={tabs} activeTab={tab} />
 
         <div className="min-w-0 flex-1">
-          {tab === "features" && <FeaturesTab />}
+          {tab === "features" && <FeaturesTab sp={sp} />}
           {tab === "users" && <UsersTab viewerRole={profile.role} sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "journal" && <JournalTab action={action} actor={actor} sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "anomalies" && <AnomaliesTab sp={sp} matchingUserIds={matchingUserIds} />}
@@ -245,7 +253,7 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
   const bucket = (rows: { created_at: string }[]) => countByPeriod(rows, (r) => r.created_at, period);
 
   return (
-    <div className="flex flex-col gap-4">
+    <section className="flex flex-col gap-4 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
       <StatsFilterBar
         tab="growth"
         paramPrefix="g"
@@ -368,7 +376,7 @@ async function GrowthTab({ sp, matchingUserIds }: { sp: AdminSearchParams; match
           xUser={sp.xUser}
         />
       </div>
-    </div>
+    </section>
   );
 }
 
@@ -430,7 +438,16 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
     Fin: s.ends_at ?? "",
   }));
 
-  const { data: slots } = await supabase.from("sponsored_slots").select("*").order("created_at", { ascending: false });
+  const ptPage = Math.max(1, Number(sp.ptPage) || 1);
+  const {
+    data: slots,
+    count: slotsCount,
+  } = await supabase
+    .from("sponsored_slots")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((ptPage - 1) * PAGE_SIZE, ptPage * PAGE_SIZE - 1);
+  const slotsTotalPages = Math.max(1, Math.ceil((slotsCount ?? 0) / PAGE_SIZE));
   const levelOptions = (levels ?? []).map((l) => ({
     id: l.id as string,
     label: l.label as string,
@@ -450,7 +467,7 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <StatsFilterBar
             tab="sponsored-slots"
@@ -498,7 +515,7 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
             emptyLabel={t("statsEmpty")}
           />
         </div>
-      </div>
+      </section>
 
       <SponsoredSlotsManager
         slots={(slots as SponsoredSlotRow[]) ?? []}
@@ -506,6 +523,7 @@ async function SponsoredSlotsTab({ sp, matchingUserIds }: { sp: AdminSearchParam
         levels={levelOptions}
         subjects={subjects}
         matchingUserIds={matchingUserIds}
+        pagination={<Pagination sp={sp} pageParam="ptPage" page={ptPage} totalPages={slotsTotalPages} />}
       />
     </div>
   );
@@ -559,9 +577,28 @@ async function SchoolsTab({
     .map((s) => ({ label: s.name, value: s.member_count }));
   const overTime = countByDay(schools ?? [], (s) => s.created_at);
 
+  // Requête paginée séparée pour la liste "écoles actives" — les graphiques ci-dessus (byPlan,
+  // topByMembers, overTime) restent calculés sur schoolsQuery en entier, pas sur cette page.
+  const sPage = Math.max(1, Number(sp.sPage) || 1);
+  let pageSchoolsQuery = supabase
+    .from("schools")
+    .select("id, name, subdomain, plan, created_at", { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((sPage - 1) * PAGE_SIZE, sPage * PAGE_SIZE - 1);
+  if (sp.sFrom) pageSchoolsQuery = pageSchoolsQuery.gte("created_at", sp.sFrom);
+  if (sp.sTo) pageSchoolsQuery = pageSchoolsQuery.lte("created_at", `${sp.sTo}T23:59:59`);
+  if (sp.sPlan) pageSchoolsQuery = pageSchoolsQuery.eq("plan", sp.sPlan);
+  if (xCountryId) pageSchoolsQuery = pageSchoolsQuery.eq("country_id", xCountryId);
+  const { data: pageSchools, count: schoolsCount } = await pageSchoolsQuery;
+  const pageSchoolRows: SchoolRow[] = (pageSchools ?? []).map((s) => ({
+    ...s,
+    member_count: memberCounts.get(s.id) ?? 0,
+  }));
+  const schoolsTotalPages = Math.max(1, Math.ceil((schoolsCount ?? 0) / PAGE_SIZE));
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <StatsFilterBar
           tab="schools"
           paramPrefix="s"
@@ -606,9 +643,13 @@ async function SchoolsTab({
             xCountry={sp.xCountry}
           />
         </div>
-      </div>
+      </section>
 
-      <SchoolRequestsList requests={(requests as unknown as SchoolRequestRow[]) ?? []} schools={schoolRows} />
+      <SchoolRequestsList
+        requests={(requests as unknown as SchoolRequestRow[]) ?? []}
+        schools={pageSchoolRows}
+        schoolsPagination={<Pagination sp={sp} pageParam="sPage" page={sPage} totalPages={schoolsTotalPages} />}
+      />
     </div>
   );
 }
@@ -624,23 +665,29 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
   if (sp.pStatus) statsQuery = statsQuery.eq("status", sp.pStatus);
   if (matchingUserIds) statsQuery = statsQuery.in("user_id", matchingUserIds);
 
+  const pPage = Math.max(1, Number(sp.pPage) || 1);
   let pendingQuery = supabase
     .from("payments")
-    .select("id, purpose, method, amount, currency, external_reference, created_at, user:profiles!payments_user_id_fkey(full_name)")
+    .select(
+      "id, purpose, method, amount, currency, external_reference, created_at, user:profiles!payments_user_id_fkey(full_name)",
+      { count: "exact" }
+    )
     .eq("method", "manual_whatsapp_om")
     .eq("status", "pending")
-    .order("created_at", { ascending: true });
+    .order("created_at", { ascending: true })
+    .range((pPage - 1) * PAGE_SIZE, pPage * PAGE_SIZE - 1);
   let confirmedQuery = supabase.from("payments").select("amount, currency").eq("status", "confirmed");
   if (matchingUserIds) {
     pendingQuery = pendingQuery.in("user_id", matchingUserIds);
     confirmedQuery = confirmedQuery.in("user_id", matchingUserIds);
   }
 
-  const [{ data: pending }, { data: confirmed }, { data: statsRows }] = await Promise.all([
+  const [{ data: pending, count: pendingCount }, { data: confirmed }, { data: statsRows }] = await Promise.all([
     pendingQuery,
     confirmedQuery,
     statsQuery,
   ]);
+  const pendingTotalPages = Math.max(1, Math.ceil((pendingCount ?? 0) / PAGE_SIZE));
 
   const revenueByCurrency = new Map<string, number>();
   for (const p of confirmed ?? []) {
@@ -666,7 +713,7 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <StatsFilterBar
           tab="payments"
           paramPrefix="p"
@@ -727,28 +774,37 @@ async function PaymentsTab({ sp, matchingUserIds }: { sp: AdminSearchParams; mat
             xUser={sp.xUser}
           />
         </div>
-      </div>
+      </section>
 
       <PaymentsAdminList
         pending={(pending as unknown as AdminPaymentRow[]) ?? []}
         revenue={[...revenueByCurrency.entries()].map(([currency, total]) => ({ currency, total }))}
+        pendingPagination={<Pagination sp={sp} pageParam="pPage" page={pPage} totalPages={pendingTotalPages} />}
       />
     </div>
   );
 }
 
-async function FeaturesTab() {
+async function FeaturesTab({ sp }: { sp: AdminSearchParams }) {
   const supabase = await createClient();
-  const [flags, { data: auditLog }] = await Promise.all([
+  const fPage = Math.max(1, Number(sp.fPage) || 1);
+  const [flags, { data: auditLog, count }] = await Promise.all([
     getFeatureFlags(),
     supabase
       .from("feature_flags_audit")
-      .select("id, flag_key, old_value, new_value, changed_at, changed_by:profiles(full_name)")
+      .select("id, flag_key, old_value, new_value, changed_at, changed_by:profiles(full_name)", { count: "exact" })
       .order("changed_at", { ascending: false })
-      .limit(20),
+      .range((fPage - 1) * PAGE_SIZE, fPage * PAGE_SIZE - 1),
   ]);
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
-  return <FeatureFlagsManager flags={flags} auditLog={(auditLog as unknown as AuditEntry[]) ?? []} />;
+  return (
+    <FeatureFlagsManager
+      flags={flags}
+      auditLog={(auditLog as unknown as AuditEntry[]) ?? []}
+      auditPagination={<Pagination sp={sp} pageParam="fPage" page={fPage} totalPages={totalPages} />}
+    />
+  );
 }
 
 async function UsersTab({
@@ -762,24 +818,37 @@ async function UsersTab({
 }) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
+  const uPage = Math.max(1, Number(sp.uPage) || 1);
+  const USERS_COLUMNS =
+    "id, full_name, avatar_url, role, genie_points, is_banned, banned_until, ban_reason, created_at, country:countries(code, name), level:education_levels(label)";
 
-  let query = supabase
-    .from("profiles")
-    .select(
-      "id, full_name, avatar_url, role, genie_points, is_banned, banned_until, ban_reason, created_at, country:countries(code, name), level:education_levels(label)"
-    )
-    .order("created_at", { ascending: false });
-
+  // Requête complète (non paginée) pour les graphiques et l'export — la pagination ne s'applique
+  // qu'à la liste affichée, jamais aux agrégats ni à l'export Excel qui doivent refléter tout ce
+  // qui correspond aux filtres actifs, pas seulement la page courante.
+  let query = supabase.from("profiles").select(USERS_COLUMNS).order("created_at", { ascending: false });
   if (sp.uFrom) query = query.gte("created_at", sp.uFrom);
   if (sp.uTo) query = query.lte("created_at", `${sp.uTo}T23:59:59`);
   if (sp.uRole) query = query.eq("role", sp.uRole);
   if (matchingUserIds) query = query.in("id", matchingUserIds);
-
   const { data: users } = await query;
   const rows = (users ?? []) as unknown as (AdminUserRow & {
     country: { code: string; name: string } | null;
     level: { label: string } | null;
   })[];
+
+  // Requête paginée séparée, uniquement pour la liste — même filtres, mais bornée à une page.
+  let pageQuery = supabase
+    .from("profiles")
+    .select(USERS_COLUMNS, { count: "exact" })
+    .order("created_at", { ascending: false })
+    .range((uPage - 1) * PAGE_SIZE, uPage * PAGE_SIZE - 1);
+  if (sp.uFrom) pageQuery = pageQuery.gte("created_at", sp.uFrom);
+  if (sp.uTo) pageQuery = pageQuery.lte("created_at", `${sp.uTo}T23:59:59`);
+  if (sp.uRole) pageQuery = pageQuery.eq("role", sp.uRole);
+  if (matchingUserIds) pageQuery = pageQuery.in("id", matchingUserIds);
+  const { data: pageUsers, count } = await pageQuery;
+  const pageRows = (pageUsers ?? []) as unknown as AdminUserRow[];
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   const signupsOverTime = countByDay(rows, (u) => u.created_at);
   const byCountry = countBy(rows, (u) => u.country?.code ?? "?");
@@ -796,7 +865,7 @@ async function UsersTab({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <StatsFilterBar
             tab="users"
@@ -849,9 +918,12 @@ async function UsersTab({
             xUser={sp.xUser}
           />
         </div>
-      </div>
+      </section>
 
-      <UsersTable users={rows} viewerRole={viewerRole} />
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <UsersTable users={pageRows} viewerRole={viewerRole} />
+        <Pagination sp={sp} pageParam="uPage" page={uPage} totalPages={totalPages} />
+      </section>
     </div>
   );
 }
@@ -882,34 +954,49 @@ async function JournalTab({
   const byAction = countBy(rows, (r) => r.action);
   const overTime = countByDay(rows, (r) => r.created_at);
 
+  const jPage = Math.max(1, Number(sp.jPage) || 1);
+
   return (
-    <div className="flex flex-col gap-4">
-      <JournalFilters actors={await fetchStaff(supabase)} action={action} actor={actor} />
-      <StatsFilterBar tab="journal" paramPrefix="j" from={sp.jFrom} to={sp.jTo} />
-      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <ChartWithDrilldown
-          chart="bar"
-          metric="journalByAction"
-          title={t("journalByAction")}
-          data={byAction}
-          emptyLabel={t("statsEmpty")}
-          xCountry={sp.xCountry}
-          xLevel={sp.xLevel}
-          xUser={sp.xUser}
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <JournalFilters actors={await fetchStaff(supabase)} action={action} actor={actor} />
+        <StatsFilterBar tab="journal" paramPrefix="j" from={sp.jFrom} to={sp.jTo} />
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ChartWithDrilldown
+            chart="bar"
+            metric="journalByAction"
+            title={t("journalByAction")}
+            data={byAction}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="line"
+            metric="journalActions"
+            title={t("journalActionsOverTime")}
+            data={overTime}
+            emptyLabel={t("statsEmpty")}
+            period="day"
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <AdminLogList
+          action={action}
+          actor={actor}
+          from={sp.jFrom}
+          to={sp.jTo}
+          userIds={matchingUserIds ?? undefined}
+          sp={sp}
+          page={jPage}
         />
-        <ChartWithDrilldown
-          chart="line"
-          metric="journalActions"
-          title={t("journalActionsOverTime")}
-          data={overTime}
-          emptyLabel={t("statsEmpty")}
-          period="day"
-          xCountry={sp.xCountry}
-          xLevel={sp.xLevel}
-          xUser={sp.xUser}
-        />
-      </div>
-      <AdminLogList action={action} actor={actor} from={sp.jFrom} to={sp.jTo} userIds={matchingUserIds ?? undefined} />
+      </section>
     </div>
   );
 }
@@ -929,50 +1016,57 @@ async function AnomaliesTab({ sp, matchingUserIds }: { sp: AdminSearchParams; ma
   const byStatus = countBy(rows, (r) => r.status);
   const overTime = countByDay(rows, (r) => r.created_at);
 
+  const aPage = Math.max(1, Number(sp.aPage) || 1);
+
   return (
-    <div className="flex flex-col gap-4">
-      <StatsFilterBar
-        tab="anomalies"
-        paramPrefix="a"
-        from={sp.aFrom}
-        to={sp.aTo}
-        selects={[
-          {
-            key: "Status",
-            value: sp.aStatus,
-            options: [
-              { value: "open", label: "open" },
-              { value: "in_progress", label: "in_progress" },
-              { value: "resolved", label: "resolved" },
-              { value: "wont_fix", label: "wont_fix" },
-            ],
-          },
-        ]}
-      />
-      <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        <ChartWithDrilldown
-          chart="pie"
-          metric="anomaliesByStatus"
-          title={t("anomaliesByStatus")}
-          data={byStatus}
-          emptyLabel={t("statsEmpty")}
-          xCountry={sp.xCountry}
-          xLevel={sp.xLevel}
-          xUser={sp.xUser}
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <StatsFilterBar
+          tab="anomalies"
+          paramPrefix="a"
+          from={sp.aFrom}
+          to={sp.aTo}
+          selects={[
+            {
+              key: "Status",
+              value: sp.aStatus,
+              options: [
+                { value: "open", label: "open" },
+                { value: "in_progress", label: "in_progress" },
+                { value: "resolved", label: "resolved" },
+                { value: "wont_fix", label: "wont_fix" },
+              ],
+            },
+          ]}
         />
-        <ChartWithDrilldown
-          chart="line"
-          metric="anomaliesReports"
-          title={t("anomaliesOverTime")}
-          data={overTime}
-          emptyLabel={t("statsEmpty")}
-          period="day"
-          xCountry={sp.xCountry}
-          xLevel={sp.xLevel}
-          xUser={sp.xUser}
-        />
-      </div>
-      <BugReportsList status={sp.aStatus} from={sp.aFrom} to={sp.aTo} userIds={matchingUserIds ?? undefined} />
+        <div className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ChartWithDrilldown
+            chart="pie"
+            metric="anomaliesByStatus"
+            title={t("anomaliesByStatus")}
+            data={byStatus}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="line"
+            metric="anomaliesReports"
+            title={t("anomaliesOverTime")}
+            data={overTime}
+            emptyLabel={t("statsEmpty")}
+            period="day"
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <BugReportsList status={sp.aStatus} from={sp.aFrom} to={sp.aTo} userIds={matchingUserIds ?? undefined} sp={sp} page={aPage} />
+      </section>
     </div>
   );
 }

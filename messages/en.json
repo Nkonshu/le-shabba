@@ -9,6 +9,8 @@
     "edit": "Edit",
     "close": "Close",
     "next": "Next",
+    "previous": "Previous",
+    "pageIndicator": "Page {page} / {total}",
     "back": "Back",
     "search": "Search",
     "seeAll": "See all",

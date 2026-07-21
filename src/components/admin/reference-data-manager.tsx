@@ -117,7 +117,7 @@ export function ReferenceDataManager({
 
   return (
     <div className="flex flex-col gap-8">
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("countriesTitle")}</h2>
         <div className="flex flex-col gap-2">
           {countries.map((c) =>
@@ -179,7 +179,7 @@ export function ReferenceDataManager({
         </div>
       </section>
 
-      <section className="flex flex-col gap-3">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("levelsTitle")}</h2>
         <select
           value={selectedCountryId}

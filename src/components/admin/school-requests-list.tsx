@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useRouter } from "@/src/i18n/navigation";
@@ -22,7 +23,15 @@ export type SchoolRow = {
   member_count: number;
 };
 
-export function SchoolRequestsList({ requests, schools }: { requests: SchoolRequestRow[]; schools: SchoolRow[] }) {
+export function SchoolRequestsList({
+  requests,
+  schools,
+  schoolsPagination,
+}: {
+  requests: SchoolRequestRow[];
+  schools: SchoolRow[];
+  schoolsPagination?: ReactNode;
+}) {
   const t = useTranslations("adminSchools");
   const router = useRouter();
   const supabase = createClient();
@@ -49,7 +58,7 @@ export function SchoolRequestsList({ requests, schools }: { requests: SchoolRequ
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("pendingRequestsTitle")}</h2>
         {requests.length === 0 ? (
           <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-neutral-500 dark:bg-neutral-900">
@@ -87,9 +96,9 @@ export function SchoolRequestsList({ requests, schools }: { requests: SchoolRequ
             </div>
           ))
         )}
-      </div>
+      </section>
 
-      <div className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("activeSchoolsTitle")}</h2>
         {schools.length === 0 ? (
           <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-neutral-500 dark:bg-neutral-900">
@@ -105,7 +114,8 @@ export function SchoolRequestsList({ requests, schools }: { requests: SchoolRequ
             </div>
           ))
         )}
-      </div>
+        {schoolsPagination}
+      </section>
     </div>
   );
 }

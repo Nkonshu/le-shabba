@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { BugReportStatusSelect } from "@/src/components/admin/bug-report-status-select";
+import { Pagination, PAGE_SIZE } from "@/src/components/admin/stats/pagination";
 
 type BugReport = {
   id: string;
@@ -20,31 +21,37 @@ export async function BugReportsList({
   from,
   to,
   userIds,
+  sp,
+  page,
 }: {
   status?: string;
   from?: string;
   to?: string;
   userIds?: string[];
-} = {}) {
+  sp: Record<string, string | undefined>;
+  page: number;
+}) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
 
   let query = supabase
     .from("bug_reports")
     .select(
-      "id, reporter_id, contact_email, description, page_url, device_info, screenshot_url, status, created_at, reporter:profiles(full_name)"
+      "id, reporter_id, contact_email, description, page_url, device_info, screenshot_url, status, created_at, reporter:profiles(full_name)",
+      { count: "exact" }
     )
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (status) query = query.eq("status", status);
   if (from) query = query.gte("created_at", from);
   if (to) query = query.lte("created_at", `${to}T23:59:59`);
   if (userIds) query = query.in("reporter_id", userIds);
 
-  const { data: reports } = await query;
+  const { data: reports, count } = await query;
 
   const rows = (reports ?? []) as unknown as BugReport[];
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   const screenshotUrls = new Map<string, string>();
   await Promise.all(
@@ -91,6 +98,7 @@ export async function BugReportsList({
           </p>
         </div>
       ))}
+      <Pagination sp={sp} pageParam="aPage" page={page} totalPages={totalPages} />
     </div>
   );
 }

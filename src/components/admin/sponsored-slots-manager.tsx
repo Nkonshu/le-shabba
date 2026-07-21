@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { Trash, Plus, PencilSimple, CaretDown, CaretUp } from "@phosphor-icons/react";
@@ -131,12 +131,14 @@ export function SponsoredSlotsManager({
   levels,
   subjects,
   matchingUserIds,
+  pagination,
 }: {
   slots: SponsoredSlotRow[];
   countries: CountryOption[];
   levels: LevelOption[];
   subjects: string[];
   matchingUserIds: string[] | null;
+  pagination?: ReactNode;
 }) {
   const t = useTranslations("adminSponsoredSlots");
   const tc = useTranslations("common");
@@ -226,7 +228,7 @@ export function SponsoredSlotsManager({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <section className="flex flex-col gap-4 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
       {slots.length === 0 && !adding && <p className="text-sm text-neutral-400">{t("empty")}</p>}
 
       {slots.map((slot) =>
@@ -312,6 +314,8 @@ export function SponsoredSlotsManager({
         )
       )}
 
+      {pagination}
+
       {adding ? (
         <SlotFormFields
           form={newForm}
@@ -336,7 +340,7 @@ export function SponsoredSlotsManager({
           {t("addSlot")}
         </button>
       )}
-    </div>
+    </section>
   );
 }
 

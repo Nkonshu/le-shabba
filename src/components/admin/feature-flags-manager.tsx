@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { createClient } from "@/src/utils/supabase/client";
@@ -18,9 +18,11 @@ type AuditEntry = {
 export function FeatureFlagsManager({
   flags: initialFlags,
   auditLog,
+  auditPagination,
 }: {
   flags: FeatureFlag[];
   auditLog: AuditEntry[];
+  auditPagination?: ReactNode;
 }) {
   const t = useTranslations("admin");
   const supabase = useMemo(() => createClient(), []);
@@ -47,8 +49,8 @@ export function FeatureFlagsManager({
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h1 className="text-2xl font-black">{t("featureFlagsTitle")}</h1>
         <ul className="flex flex-col divide-y divide-neutral-100 dark:divide-neutral-900">
           {flags.map((flag) => (
@@ -76,9 +78,9 @@ export function FeatureFlagsManager({
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
-      <div className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="text-lg font-black">{t("auditTitle")}</h2>
         <ul className="flex flex-col gap-2 text-sm text-neutral-500">
           {auditLog.map((entry) => (
@@ -94,7 +96,8 @@ export function FeatureFlagsManager({
           ))}
           {auditLog.length === 0 && <li>{t("auditEmpty")}</li>}
         </ul>
-      </div>
+        {auditPagination}
+      </section>
     </div>
   );
 }

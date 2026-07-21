@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useRouter } from "@/src/i18n/navigation";
@@ -19,9 +20,11 @@ export type AdminPaymentRow = {
 export function PaymentsAdminList({
   pending,
   revenue,
+  pendingPagination,
 }: {
   pending: AdminPaymentRow[];
   revenue: { currency: string; total: number }[];
+  pendingPagination?: ReactNode;
 }) {
   const t = useTranslations("adminPayments");
   const router = useRouter();
@@ -49,7 +52,7 @@ export function PaymentsAdminList({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("revenueTitle")}</h2>
         <div className="flex flex-wrap gap-2">
           {revenue.length === 0 ? (
@@ -62,9 +65,9 @@ export function PaymentsAdminList({
             ))
           )}
         </div>
-      </div>
+      </section>
 
-      <div className="flex flex-col gap-2">
+      <section className="flex flex-col gap-2 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
         <h2 className="font-black">{t("pendingManualTitle")}</h2>
         {pending.length === 0 ? (
           <p className="rounded-xl bg-neutral-50 p-4 text-center text-sm text-neutral-500 dark:bg-neutral-900">
@@ -95,7 +98,8 @@ export function PaymentsAdminList({
             </div>
           ))
         )}
-      </div>
+        {pendingPagination}
+      </section>
     </div>
   );
 }

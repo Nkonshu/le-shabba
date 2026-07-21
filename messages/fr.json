@@ -9,6 +9,8 @@
     "edit": "Modifier",
     "close": "Fermer",
     "next": "Suivant",
+    "previous": "Précédent",
+    "pageIndicator": "Page {page} / {total}",
     "back": "Retour",
     "search": "Rechercher",
     "seeAll": "Voir tout",

@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { Link } from "@/src/i18n/navigation";
+import { Pagination, PAGE_SIZE } from "@/src/components/admin/stats/pagination";
 
 type LogRow = {
   id: string;
@@ -18,21 +19,27 @@ export async function AdminLogList({
   from,
   to,
   userIds,
+  sp,
+  page,
 }: {
   action?: string;
   actor?: string;
   from?: string;
   to?: string;
   userIds?: string[];
+  sp: Record<string, string | undefined>;
+  page: number;
 }) {
   const t = await getTranslations("admin");
   const supabase = await createClient();
 
   let query = supabase
     .from("admin_actions_log")
-    .select("id, action, target_type, target_id, note, created_at, actor:profiles!actor_id(id, full_name, avatar_url)")
+    .select("id, action, target_type, target_id, note, created_at, actor:profiles!actor_id(id, full_name, avatar_url)", {
+      count: "exact",
+    })
     .order("created_at", { ascending: false })
-    .limit(50);
+    .range((page - 1) * PAGE_SIZE, page * PAGE_SIZE - 1);
 
   if (action) query = query.eq("action", action);
   if (actor) query = query.eq("actor_id", actor);
@@ -40,8 +47,9 @@ export async function AdminLogList({
   if (to) query = query.lte("created_at", `${to}T23:59:59`);
   if (userIds) query = query.in("actor_id", userIds);
 
-  const { data: entries } = await query;
+  const { data: entries, count } = await query;
   const rows = (entries ?? []) as unknown as LogRow[];
+  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
 
   const userTargetIds = rows.filter((r) => r.target_type === "user" && r.target_id).map((r) => r.target_id!);
   const answerTargetIds = rows.filter((r) => r.target_type === "answer" && r.target_id).map((r) => r.target_id!);
@@ -104,6 +112,7 @@ export async function AdminLogList({
           </div>
         );
       })}
+      <Pagination sp={sp} pageParam="jPage" page={page} totalPages={totalPages} />
     </div>
   );
 }
