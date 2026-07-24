@@ -24,6 +24,9 @@ const METRICS = [
   // Anomalies
   "anomaliesReports",
   "anomaliesByStatus",
+  // Messages de contact
+  "contactMessagesReports",
+  "contactMessagesByStatus",
   // Écoles
   "schoolsCreated",
   "schoolsByPlan",
@@ -221,6 +224,23 @@ async function fetchRows(
       id: r.id,
       label: r.description.slice(0, 80),
       sublabel: (r.reporter as unknown as { full_name: string | null } | null)?.full_name ?? "anonyme",
+    }));
+  }
+
+  if (metric === "contactMessagesReports" || metric === "contactMessagesByStatus") {
+    let q = supabase
+      .from("contact_messages")
+      .select("id, subject, status, full_name")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (start && end) q = q.gte("created_at", start).lt("created_at", end);
+    if (metric === "contactMessagesByStatus" && category) q = q.eq("status", category);
+    if (matchingUserIds) q = q.in("sender_id", matchingUserIds);
+    const { data } = await q;
+    return (data ?? []).map((r) => ({
+      id: r.id,
+      label: r.subject,
+      sublabel: r.full_name,
     }));
   }
 

@@ -191,6 +191,7 @@
     "statOpenBugs": "Anomalies ouvertes",
     "tabAnomalies": "Anomalies",
     "bugReportsEmpty": "Aucune anomalie signalée pour l'instant.",
+    "bugSearchPlaceholder": "Rechercher dans les descriptions...",
     "bugPageUrl": "Page",
     "bugAnonymous": "Visiteur anonyme",
     "bugStatus": {
@@ -198,6 +199,18 @@
       "in_progress": "En cours",
       "resolved": "Résolu",
       "wont_fix": "Ne sera pas corrigé"
+    },
+    "tabContactMessages": "Messages",
+    "contactMessagesOverTime": "Messages dans le temps",
+    "contactMessagesByStatus": "Répartition par statut",
+    "contactMessagesEmpty": "Aucun message pour l'instant.",
+    "contactMessagesSearchPlaceholder": "Rechercher dans les messages...",
+    "contactMessagesAttachment": "Voir la pièce jointe",
+    "contactMessageStatus": {
+      "new": "Nouveau",
+      "read": "Lu",
+      "replied": "Répondu",
+      "archived": "Archivé"
     }
   },
   "library": {
@@ -321,6 +334,17 @@
     "hotNetwork": "Tendances du réseau",
     "myProgress": "Ma progression",
     "streakDays": "{count, plural, one {# jour de suite} other {# jours de suite}}"
+  },
+  "contactForm": {
+    "title": "Ou envoie-nous un message",
+    "nameLabel": "Ton nom",
+    "emailLabel": "Ton email",
+    "subjectLabel": "Sujet",
+    "messageLabel": "Message",
+    "attachmentLabel": "Pièce jointe (optionnel)",
+    "submit": "Envoyer",
+    "submitError": "L'envoi a échoué, réessaie.",
+    "thankYou": "Merci, ton message a bien été envoyé — on te répond par email dès que possible."
   },
   "bugReport": {
     "reportProblem": "Signaler un problème",

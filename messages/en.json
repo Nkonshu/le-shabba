@@ -191,6 +191,7 @@
     "statOpenBugs": "Open bugs",
     "tabAnomalies": "Anomalies",
     "bugReportsEmpty": "No bug reports yet.",
+    "bugSearchPlaceholder": "Search in descriptions...",
     "bugPageUrl": "Page",
     "bugAnonymous": "Anonymous visitor",
     "bugStatus": {
@@ -198,6 +199,18 @@
       "in_progress": "In progress",
       "resolved": "Resolved",
       "wont_fix": "Won't fix"
+    },
+    "tabContactMessages": "Messages",
+    "contactMessagesOverTime": "Messages over time",
+    "contactMessagesByStatus": "Breakdown by status",
+    "contactMessagesEmpty": "No messages yet.",
+    "contactMessagesSearchPlaceholder": "Search in messages...",
+    "contactMessagesAttachment": "View attachment",
+    "contactMessageStatus": {
+      "new": "New",
+      "read": "Read",
+      "replied": "Replied",
+      "archived": "Archived"
     }
   },
   "library": {
@@ -321,6 +334,17 @@
     "hotNetwork": "Hot Network trends",
     "myProgress": "My progress",
     "streakDays": "{count, plural, one {# day streak} other {# day streak}}"
+  },
+  "contactForm": {
+    "title": "Or send us a message",
+    "nameLabel": "Your name",
+    "emailLabel": "Your email",
+    "subjectLabel": "Subject",
+    "messageLabel": "Message",
+    "attachmentLabel": "Attachment (optional)",
+    "submit": "Send",
+    "submitError": "Sending failed, try again.",
+    "thankYou": "Thanks, your message was sent — we'll reply by email as soon as we can."
   },
   "bugReport": {
     "reportProblem": "Report a problem",

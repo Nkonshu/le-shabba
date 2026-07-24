@@ -8,6 +8,7 @@ import { UsersTable, type AdminUserRow } from "@/src/components/admin/users-tabl
 import { AdminLogList } from "@/src/components/admin/admin-log-list";
 import { JournalFilters } from "@/src/components/admin/journal-filters";
 import { BugReportsList } from "@/src/components/admin/bug-reports-list";
+import { ContactMessagesList } from "@/src/components/admin/contact-messages-list";
 import { SchoolRequestsList, type SchoolRequestRow, type SchoolRow } from "@/src/components/admin/school-requests-list";
 import { PaymentsAdminList, type AdminPaymentRow } from "@/src/components/admin/payments-admin-list";
 import { ReferenceDataManager, type CountryRow, type LevelRow } from "@/src/components/admin/reference-data-manager";
@@ -48,6 +49,7 @@ type AdminSearchParams = {
   aTo?: string;
   aStatus?: string;
   aPage?: string;
+  aSearch?: string;
   sFrom?: string;
   sTo?: string;
   sPlan?: string;
@@ -68,6 +70,11 @@ type AdminSearchParams = {
   gTo?: string;
   gPeriod?: string;
   fPage?: string;
+  cmFrom?: string;
+  cmTo?: string;
+  cmStatus?: string;
+  cmPage?: string;
+  cmSearch?: string;
   rSearch?: string;
   xCountry?: string;
   xLevel?: string;
@@ -138,6 +145,7 @@ export default async function AdminPage({
     { key: "users", href: "/admin?tab=users", label: t("tabUsers") },
     { key: "journal", href: "/admin?tab=journal", label: t("tabJournal") },
     { key: "anomalies", href: "/admin?tab=anomalies", label: t("tabAnomalies") },
+    { key: "contact-messages", href: "/admin?tab=contact-messages", label: t("tabContactMessages") },
     { key: "schools", href: "/admin?tab=schools", label: tAdminSchools("tabSchools") },
     { key: "payments", href: "/admin?tab=payments", label: tAdminPayments("tabPayments") },
     { key: "reference-data", href: "/admin?tab=reference-data", label: tAdminReferenceData("tabReferenceData") },
@@ -173,6 +181,7 @@ export default async function AdminPage({
           {tab === "users" && <UsersTab viewerRole={profile.role} sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "journal" && <JournalTab action={action} actor={actor} sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "anomalies" && <AnomaliesTab sp={sp} matchingUserIds={matchingUserIds} />}
+          {tab === "contact-messages" && <ContactMessagesTab sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "schools" && <SchoolsTab sp={sp} matchingUserIds={matchingUserIds} xCountryId={xCountryId} />}
           {tab === "payments" && <PaymentsTab sp={sp} matchingUserIds={matchingUserIds} />}
           {tab === "reference-data" && <ReferenceDataTab sp={sp} />}
@@ -1224,7 +1233,123 @@ async function AnomaliesTab({ sp, matchingUserIds }: { sp: AdminSearchParams; ma
       </section>
 
       <section className="rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
-        <BugReportsList status={sp.aStatus} from={sp.aFrom} to={sp.aTo} userIds={matchingUserIds ?? undefined} sp={sp} page={aPage} />
+        <BugReportsList
+          status={sp.aStatus}
+          from={sp.aFrom}
+          to={sp.aTo}
+          userIds={matchingUserIds ?? undefined}
+          search={sp.aSearch}
+          sp={sp}
+          page={aPage}
+        />
+      </section>
+    </div>
+  );
+}
+
+async function ContactMessagesTab({ sp, matchingUserIds }: { sp: AdminSearchParams; matchingUserIds: string[] | null }) {
+  const t = await getTranslations("admin");
+  const supabase = await createClient();
+
+  let statsQuery = supabase.from("contact_messages").select("id, status, created_at");
+  if (sp.cmStatus) statsQuery = statsQuery.eq("status", sp.cmStatus);
+  if (sp.cmFrom) statsQuery = statsQuery.gte("created_at", sp.cmFrom);
+  if (sp.cmTo) statsQuery = statsQuery.lte("created_at", `${sp.cmTo}T23:59:59`);
+  if (matchingUserIds) statsQuery = statsQuery.in("sender_id", matchingUserIds);
+  const { data: statsRows } = await statsQuery;
+  const rows = statsRows ?? [];
+
+  const byStatus = countBy(rows, (r) => r.status);
+  const overTime = countByDay(rows, (r) => r.created_at);
+
+  const cmPage = Math.max(1, Number(sp.cmPage) || 1);
+
+  // Requête d'export dédiée — statsQuery (id, status, created_at) ne suffit pas à un export lisible.
+  let exportQuery = supabase
+    .from("contact_messages")
+    .select("full_name, contact_email, subject, message, status, created_at")
+    .order("created_at", { ascending: false });
+  if (sp.cmStatus) exportQuery = exportQuery.eq("status", sp.cmStatus);
+  if (sp.cmFrom) exportQuery = exportQuery.gte("created_at", sp.cmFrom);
+  if (sp.cmTo) exportQuery = exportQuery.lte("created_at", `${sp.cmTo}T23:59:59`);
+  if (matchingUserIds) exportQuery = exportQuery.in("sender_id", matchingUserIds);
+  const { data: exportData } = await exportQuery;
+  const exportRows = (exportData ?? []).map((r) => ({
+    Nom: r.full_name,
+    Email: r.contact_email,
+    Sujet: r.subject,
+    Message: r.message,
+    Statut: r.status,
+    Date: new Date(r.created_at).toLocaleString(),
+  }));
+
+  return (
+    <div className="flex flex-col gap-6">
+      <section className="flex flex-col gap-3 rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <StatsFilterBar
+            tab="contact-messages"
+            paramPrefix="cm"
+            from={sp.cmFrom}
+            to={sp.cmTo}
+            selects={[
+              {
+                key: "Status",
+                value: sp.cmStatus,
+                options: [
+                  { value: "new", label: t("contactMessageStatus.new") },
+                  { value: "read", label: t("contactMessageStatus.read") },
+                  { value: "replied", label: t("contactMessageStatus.replied") },
+                  { value: "archived", label: t("contactMessageStatus.archived") },
+                ],
+              },
+            ]}
+          />
+          <div className="flex gap-2">
+            <ExportExcelButton rows={exportRows} filename="le-shabba-messages-contact" />
+            <ExportPdfButton
+              rows={exportRows}
+              filename="le-shabba-messages-contact"
+              reportTitle={t("tabContactMessages")}
+              chartsContainerId="contact-messages-charts"
+            />
+          </div>
+        </div>
+        <div id="contact-messages-charts" className="grid grid-cols-1 items-start gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <ChartWithDrilldown
+            chart="pie"
+            metric="contactMessagesByStatus"
+            title={t("contactMessagesByStatus")}
+            data={byStatus}
+            emptyLabel={t("statsEmpty")}
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+          <ChartWithDrilldown
+            chart="line"
+            metric="contactMessagesReports"
+            title={t("contactMessagesOverTime")}
+            data={overTime}
+            emptyLabel={t("statsEmpty")}
+            period="day"
+            xCountry={sp.xCountry}
+            xLevel={sp.xLevel}
+            xUser={sp.xUser}
+          />
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-neutral-200 p-4 dark:border-neutral-800">
+        <ContactMessagesList
+          status={sp.cmStatus}
+          from={sp.cmFrom}
+          to={sp.cmTo}
+          userIds={matchingUserIds ?? undefined}
+          search={sp.cmSearch}
+          sp={sp}
+          page={cmPage}
+        />
       </section>
     </div>
   );

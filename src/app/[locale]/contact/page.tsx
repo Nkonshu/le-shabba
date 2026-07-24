@@ -1,4 +1,6 @@
 import { WhatsappLogo, EnvelopeSimple } from "@phosphor-icons/react/dist/ssr";
+import { getTranslations } from "next-intl/server";
+import { ContactForm } from "@/src/components/contact/contact-form";
 
 export default async function ContactPage({
   params,
@@ -7,6 +9,7 @@ export default async function ContactPage({
 }) {
   const { locale } = await params;
   const isFr = locale === "fr";
+  const t = await getTranslations("contactForm");
 
   const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_BUSINESS_NUMBER;
   const contactEmail = process.env.NEXT_PUBLIC_CONTACT_EMAIL;
@@ -46,6 +49,11 @@ export default async function ContactPage({
               : "Contact channels aren't configured yet."}
           </p>
         )}
+      </div>
+
+      <div className="flex flex-col gap-3 border-t border-neutral-100 pt-4 dark:border-neutral-900">
+        <h2 className="text-lg font-black">{t("title")}</h2>
+        <ContactForm />
       </div>
     </main>
   );

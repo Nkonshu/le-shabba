@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { createClient } from "@/src/utils/supabase/server";
 import { BugReportStatusSelect } from "@/src/components/admin/bug-report-status-select";
 import { Pagination, PAGE_SIZE } from "@/src/components/admin/stats/pagination";
+import { SearchBox } from "@/src/components/admin/stats/search-box";
 
 type BugReport = {
   id: string;
@@ -21,6 +22,7 @@ export async function BugReportsList({
   from,
   to,
   userIds,
+  search,
   sp,
   page,
 }: {
@@ -28,6 +30,7 @@ export async function BugReportsList({
   from?: string;
   to?: string;
   userIds?: string[];
+  search?: string;
   sp: Record<string, string | undefined>;
   page: number;
 }) {
@@ -47,6 +50,7 @@ export async function BugReportsList({
   if (from) query = query.gte("created_at", from);
   if (to) query = query.lte("created_at", `${to}T23:59:59`);
   if (userIds) query = query.in("reporter_id", userIds);
+  if (search) query = query.ilike("description", `%${search}%`);
 
   const { data: reports, count } = await query;
 
@@ -65,14 +69,18 @@ export async function BugReportsList({
 
   if (rows.length === 0) {
     return (
-      <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">
-        {t("bugReportsEmpty")}
-      </p>
+      <div className="flex flex-col gap-2">
+        <SearchBox key={search ?? ""} paramKey="aSearch" defaultValue={search} placeholder={t("bugSearchPlaceholder")} />
+        <p className="rounded-xl bg-neutral-50 p-6 text-center text-sm text-neutral-500 dark:bg-neutral-900">
+          {t("bugReportsEmpty")}
+        </p>
+      </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-3">
+      <SearchBox key={search ?? ""} paramKey="aSearch" defaultValue={search} placeholder={t("bugSearchPlaceholder")} />
       {rows.map((report) => (
         <div key={report.id} className="flex flex-col gap-2 rounded-xl border border-neutral-200 p-3 text-sm dark:border-neutral-800">
           <div className="flex items-start justify-between gap-2">
